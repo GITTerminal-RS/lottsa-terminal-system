@@ -1,0 +1,22 @@
+{
+    "mcpServers": {
+        "query Docs": {
+            "url": "https://gitmcp.io/TanStack/query"
+        },
+        "table Docs": {
+            "url": "https://gitmcp.io/TanStack/table"
+        },
+        "router Docs": {
+            "url": "https://gitmcp.io/TanStack/router"
+        },
+        "virtual Docs": {
+            "url": "https://gitmcp.io/TanStack/virtual"
+        },
+        "form Docs": {
+            "url": "https://gitmcp.io/TanStack/form"
+        },
+        "react-charts Docs": {
+            "url": "https://gitmcp.io/TanStack/react-charts"
+        }
+    }
+}
