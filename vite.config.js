@@ -27,6 +27,11 @@ export default defineConfig({
   },
   preview: {
     port: 4173,
-    open: true
+    open: true,
+    host: '0.0.0.0',
+    allowedHosts: [
+      'lottsa-terminal-system.onrender.com',
+      '.onrender.com'
+    ]
   }
 })
