@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { BoldText } from "../../index";
-import LOTSALogo from "../../assets/LOTSA-r.png";
+import LOTSALogo from "../../assets/Lotsa-r.png";
 import { FaPhone, FaMobile, FaUser, FaBuilding, FaCode, FaPalette, FaAndroid, FaDownload } from "react-icons/fa";
 
 export function FooterInformativa() {
