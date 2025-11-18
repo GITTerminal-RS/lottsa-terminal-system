@@ -1100,17 +1100,57 @@ const ModalContent = styled.div`
   padding: 30px 24px 18px 24px;
   min-width: 320px;
   max-width: 90vw;
+  max-height: 80vh;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);
   display: flex;
   flex-direction: column;
   align-items: center;
+  
+  h3 {
+    margin: 0 0 15px 0;
+    color: #3a4b86;
+    font-size: 1.2rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
 `;
 
 const HorariosModalList = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin: 18px 0 10px 0;
+  margin: 0;
+  padding: 15px;
+  max-height: 40vh;
+  overflow-y: auto;
+  width: 100%;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+  flex-shrink: 1;
+  
+  /* Estilos personalizados para la barra de scroll */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #3a4b86;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: #2a3a76;
+  }
+  
+  /* Para Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #3a4b86 #f1f1f1;
 `;
 
 const HorarioModalItem = styled.button`
@@ -1132,7 +1172,12 @@ const HorarioModalItem = styled.button`
 const ModalActions = styled.div`
   display: flex;
   gap: 16px;
-  margin-top: 18px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  width: 100%;
+  justify-content: center;
+  flex-shrink: 0;
   button {
     padding: 8px 18px;
     border-radius: 6px;
