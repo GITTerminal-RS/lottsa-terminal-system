@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FaPlay, FaPause, FaVolumeUp, FaVolumeMute, FaMapMarkerAlt, FaPlane, FaTaxi, FaBus, FaClock, FaRoute, FaChair, FaTicketAlt, FaRestroom, FaUtensils, FaGift, FaStore, FaInfoCircle, FaCreditCard, FaBox, FaShieldAlt, FaEye, FaHandSparkles, FaCog, FaTools } from 'react-icons/fa';
 import PortadaPG from "../../assets/PortadaPG.mp4"; // Import the video
+import PortadaMovil from "../../assets/portadamovil.mp4"; // Import mobile video
 // Removed unused image imports:
 // import portada1 from "../../assets/portadatt_1.jpg";
 // import portada2 from "../../assets/portadatt_2.jpg";
@@ -194,6 +195,7 @@ const GlobalAnimatedTextStyle = createGlobalStyle`
 export function InformativaTemplate() {
   const [state, setState] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRef = useRef(null);
   const [showFirstGif, setShowFirstGif] = useState(false);
   const [showSecondGif, setShowSecondGif] = useState(false);
@@ -474,13 +476,47 @@ export function InformativaTemplate() {
   console.log('viajaYa:', viajaYa, 'loadingViajaYa:', loadingViajaYa, 'openViajaYa:', openViajaYa);
   const viajaYaToShow = viajaYa || [];
 
-  // Determinar qué video usar como portada
-  // Si hay video en la malla, usarlo como portada; sino usar el video por defecto
-  const videoPortada = (mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link') 
-    ? mallaData.video 
-    : PortadaPG;
+  // Función para detectar dispositivos móviles
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           window.innerWidth <= 768;
+  };
 
-  console.log('Video de portada seleccionado:', videoPortada === PortadaPG ? 'Video por defecto' : 'Video de malla');
+  // useEffect para detectar cambios de tamaño de ventana
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(isMobileDevice());
+    };
+
+    // Verificar al cargar
+    checkMobile();
+
+    // Agregar listener para cambios de tamaño
+    window.addEventListener('resize', checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Determinar qué video usar como portada
+  const videoPortada = (() => {
+    // Si hay video en la malla, usarlo como portada
+    if (mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link') {
+      return mallaData.video;
+    }
+    
+    // Si no hay video de malla, usar video específico según dispositivo
+    return isMobile ? PortadaMovil : PortadaPG;
+  })();
+
+  console.log('Dispositivo móvil detectado:', isMobile);
+  console.log('Video de portada seleccionado:', 
+    mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link' 
+      ? 'Video de malla' 
+      : isMobile 
+        ? 'Video móvil (portadamovil.mp4)' 
+        : 'Video web (PortadaPG.mp4)'
+  );
 
   return (
     <>
