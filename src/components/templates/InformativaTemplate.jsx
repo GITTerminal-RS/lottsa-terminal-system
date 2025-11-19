@@ -243,10 +243,19 @@ export function InformativaTemplate() {
   // useEffect para detectar cambios de tamaño de ventana (debe estar con los otros hooks)
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(isMobileDevice());
+      const isMobileResult = isMobileDevice();
+      console.log('🔍 Detección móvil:', {
+        userAgent: navigator.userAgent,
+        windowWidth: window.innerWidth,
+        isMobileByUA: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        isMobileByWidth: window.innerWidth <= 768,
+        finalResult: isMobileResult
+      });
+      setIsMobile(isMobileResult);
     };
 
     // Verificar al cargar
+    console.log('🚀 Inicializando detección móvil...');
     checkMobile();
 
     // Agregar listener para cambios de tamaño
@@ -261,6 +270,11 @@ export function InformativaTemplate() {
       videoRef.current.muted = isMuted;
     }
   }, [isMuted]);
+
+  // useEffect para monitorear cambios en isMobile
+  useEffect(() => {
+    console.log('📱 Estado isMobile cambió a:', isMobile);
+  }, [isMobile]);
 
   useEffect(() => {
     // Primero el texto, luego gif1, luego gif2
@@ -510,13 +524,22 @@ export function InformativaTemplate() {
     return isMobile ? PortadaMovil : PortadaPG;
   })();
 
-  console.log('Dispositivo móvil detectado:', isMobile);
-  console.log('Video de portada seleccionado:', 
+  console.log('🎬 Selección de video:', {
+    isMobile: isMobile,
+    mallaData: mallaData,
+    mallaVideo: mallaData?.video,
+    videoPortada: videoPortada,
+    PortadaMovil: PortadaMovil,
+    PortadaPG: PortadaPG
+  });
+  
+  console.log('📱 Dispositivo móvil detectado:', isMobile);
+  console.log('🎥 Video de portada seleccionado:', 
     mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link' 
-      ? 'Video de malla' 
+      ? `Video de malla: ${mallaData.video}` 
       : isMobile 
-        ? 'Video móvil (portadamovil.mp4)' 
-        : 'Video web (PortadaPG.mp4)'
+        ? `Video móvil: ${PortadaMovil}` 
+        : `Video web: ${PortadaPG}`
   );
 
   return (
