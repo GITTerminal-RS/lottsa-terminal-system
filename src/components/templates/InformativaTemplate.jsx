@@ -516,8 +516,13 @@ export function InformativaTemplate() {
 
   // Determinar qué video usar como portada
   const videoPortada = (() => {
-    // Para dispositivos móviles: SIEMPRE usar video móvil dedicado
+    // Para dispositivos móviles: usar video móvil de malla si existe, sino fallback
     if (isMobile) {
+      // Prioridad 1: Video móvil de malla
+      if (mallaData?.videomovil && mallaData.videomovil.trim() !== '' && mallaData.videomovil !== 'link') {
+        return mallaData.videomovil;
+      }
+      // Fallback: Video móvil por defecto
       return PortadaMovil;
     }
     
@@ -534,6 +539,7 @@ export function InformativaTemplate() {
     isMobile: isMobile,
     mallaData: mallaData,
     mallaVideo: mallaData?.video,
+    mallaVideoMovil: mallaData?.videomovil,
     videoPortada: videoPortada,
     PortadaMovil: PortadaMovil,
     PortadaPG: PortadaPG,
@@ -544,7 +550,9 @@ export function InformativaTemplate() {
   console.log('📱 Dispositivo móvil detectado:', isMobile);
   console.log('🎥 Video de portada seleccionado:', 
     isMobile 
-      ? `📱 Video móvil: ${PortadaMovil}` 
+      ? mallaData?.videomovil && mallaData.videomovil.trim() !== '' && mallaData.videomovil !== 'link'
+        ? `📱 Video móvil de malla: ${mallaData.videomovil}`
+        : `📱 Video móvil por defecto: ${PortadaMovil}`
       : mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link'
         ? `💻 Video de malla (web): ${mallaData.video}`
         : `💻 Video web fallback: ${PortadaMovil} (temporal)`

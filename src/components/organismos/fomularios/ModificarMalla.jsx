@@ -5,7 +5,7 @@ import { useMallaStore } from "../../../store/MallaStore";
 import { useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { FaRegImage, FaVideo, FaTrash, FaUpload, FaPlay } from 'react-icons/fa';
-import { SubirVideoMallaAlStorage, ActualizarVideoMalla } from "../../../supabase/crudMalla";
+import { SubirVideoMallaAlStorage, ActualizarVideoMalla, SubirVideoMovilMallaAlStorage, ActualizarVideoMovilMalla } from "../../../supabase/crudMalla";
 import toast from 'react-hot-toast';
 
 export function ModificarMalla({ dataSelect }) {
@@ -14,11 +14,17 @@ export function ModificarMalla({ dataSelect }) {
   const { register, setValue, watch } = useForm();
   const debounceRef = useRef();
   
-  // Estados para manejo de video
+  // Estados para manejo de video web
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const videoInputRef = useRef(null);
+
+  // Estados para manejo de video móvil
+  const [selectedVideoMovil, setSelectedVideoMovil] = useState(null);
+  const [currentVideoMovilUrl, setCurrentVideoMovilUrl] = useState("");
+  const [isUploadingVideoMovil, setIsUploadingVideoMovil] = useState(false);
+  const videoMovilInputRef = useRef(null);
 
   useEffect(() => {
     if (dataSelect) {
@@ -26,7 +32,9 @@ export function ModificarMalla({ dataSelect }) {
       setValue("linkimg2", dataSelect.linkimg2 || "");
       setValue("texto", dataSelect.texto || "");
       setValue("video", dataSelect.video || "");
+      setValue("videomovil", dataSelect.videomovil || "");
       setCurrentVideoUrl(dataSelect.video || "");
+      setCurrentVideoMovilUrl(dataSelect.videomovil || "");
     }
   }, [dataSelect, setValue]);
 
@@ -190,6 +198,124 @@ export function ModificarMalla({ dataSelect }) {
     }
   };
 
+  // ==================== FUNCIONES PARA VIDEO MÓVIL ====================
+
+  // Función para seleccionar video móvil
+  const handleVideoMovilSelect = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validar que sea MP4
+      if (file.type !== 'video/mp4') {
+        toast.error("Solo se permiten archivos MP4");
+        return;
+      }
+
+      // Validar tamaño (máximo 100MB)
+      const maxSize = 100 * 1024 * 1024; // 100MB
+      if (file.size > maxSize) {
+        toast.error("El archivo es demasiado grande. Máximo 100MB");
+        return;
+      }
+
+      // Validar duración del video (entre 30 y 40 segundos)
+      try {
+        const videoDuration = await getVideoDuration(file);
+        if (videoDuration < 30) {
+          toast.error("El video debe tener una duración mínima de 30 segundos");
+          return;
+        }
+        if (videoDuration > 40) {
+          toast.error("El video debe tener una duración máxima de 40 segundos");
+          return;
+        }
+      } catch (error) {
+        toast.error("No se pudo verificar la duración del video");
+        return;
+      }
+
+      setSelectedVideoMovil(file);
+      toast.success(`Video móvil seleccionado: ${file.name}`);
+    }
+  };
+
+  // Función para subir video móvil
+  const handleVideoMovilSubmit = async () => {
+    if (!selectedVideoMovil || !dataSelect) {
+      toast.error("No hay video móvil seleccionado");
+      return;
+    }
+
+    try {
+      setIsUploadingVideoMovil(true);
+      toast.loading("Subiendo video móvil...");
+
+      // Subir video al storage
+      const videoUrl = await SubirVideoMovilMallaAlStorage(selectedVideoMovil, dataSelect.id);
+      
+      // Actualizar video en la base de datos
+      await ActualizarVideoMovilMalla(dataSelect.id, videoUrl, currentVideoMovilUrl);
+      
+      // Actualizar estados
+      setCurrentVideoMovilUrl(videoUrl);
+      setValue("videomovil", videoUrl);
+      setSelectedVideoMovil(null);
+      
+      // Limpiar input
+      if (videoMovilInputRef.current) {
+        videoMovilInputRef.current.value = '';
+      }
+      
+      toast.dismiss();
+      toast.success("Video móvil subido exitosamente");
+      setMensaje("¡Video móvil subido con éxito!");
+      setTimeout(() => setMensaje(""), 1500);
+      
+    } catch (error) {
+      console.error("Error al subir video móvil:", error);
+      toast.dismiss();
+      toast.error(error.message || "Error al subir el video móvil");
+    } finally {
+      setIsUploadingVideoMovil(false);
+    }
+  };
+
+  // Función para eliminar video móvil
+  const handleVideoMovilDelete = async () => {
+    if (!currentVideoMovilUrl || !dataSelect) {
+      return;
+    }
+
+    try {
+      setIsUploadingVideoMovil(true);
+      toast.loading("Eliminando video móvil...");
+
+      // Actualizar video móvil en la base de datos a null (elimina automáticamente del storage)
+      await ActualizarVideoMovilMalla(dataSelect.id, null, currentVideoMovilUrl);
+      
+      // Actualizar estados
+      setCurrentVideoMovilUrl("");
+      setValue("videomovil", "");
+      setSelectedVideoMovil(null);
+      
+      // Limpiar input
+      if (videoMovilInputRef.current) {
+        videoMovilInputRef.current.value = '';
+      }
+      
+      toast.dismiss();
+      toast.success("Video móvil eliminado exitosamente");
+      setMensaje("¡Video móvil eliminado con éxito!");
+      setTimeout(() => setMensaje(""), 1500);
+      
+    } catch (error) {
+      console.error("Error al eliminar video móvil:", error);
+      toast.dismiss();
+      toast.error(error.message || "Error al eliminar el video móvil");
+    } finally {
+      setIsUploadingVideoMovil(false);
+    }
+  };
+
   return (
     <Container>
       <form className="formulario">
@@ -276,6 +402,78 @@ export function ModificarMalla({ dataSelect }) {
               <li>Formato: MP4 únicamente</li>
               <li>Duración: Entre 30 y 40 segundos</li>
               <li>Tamaño máximo: 100MB</li>
+            </ul>
+          </VideoInfo>
+        </VideoSection>
+
+        {/* Sección de Video Móvil */}
+        <VideoSection>
+          <VideoHeader>
+            <FaVideo style={{ color: '#3a4b86', fontSize: '1.2rem' }} />
+            <h3 style={{ color: '#3a4b86', margin: 0 }}>Video Móvil (Dispositivos Móviles)</h3>
+          </VideoHeader>
+
+          {/* Video móvil actual */}
+          {currentVideoMovilUrl && currentVideoMovilUrl.trim() !== '' && (
+            <CurrentVideoContainer>
+              <VideoPreview>
+                <video controls style={{ width: '100%', maxHeight: '200px' }}>
+                  <source src={currentVideoMovilUrl} type="video/mp4" />
+                  Tu navegador no soporta el elemento de video.
+                </video>
+              </VideoPreview>
+              <VideoActions>
+                <DeleteVideoButton 
+                  type="button" 
+                  onClick={handleVideoMovilDelete}
+                  disabled={isUploadingVideoMovil}
+                >
+                  <FaTrash /> Eliminar Video Móvil
+                </DeleteVideoButton>
+              </VideoActions>
+              <VideoReplaceInfo>
+                <p>💡 Para subir un nuevo video móvil, primero elimina el video actual</p>
+              </VideoReplaceInfo>
+            </CurrentVideoContainer>
+          )}
+
+          {/* Input para seleccionar nuevo video móvil - Solo mostrar si no hay video actual */}
+          {(!currentVideoMovilUrl || currentVideoMovilUrl.trim() === '') && (
+            <VideoUploadContainer>
+              <VideoInputWrapper>
+                <VideoInput
+                  ref={videoMovilInputRef}
+                  type="file"
+                  accept="video/mp4"
+                  onChange={handleVideoMovilSelect}
+                  disabled={isUploadingVideoMovil}
+                />
+                <VideoInputLabel>
+                  <FaVideo />
+                  {selectedVideoMovil ? selectedVideoMovil.name : 'Seleccionar video móvil MP4'}
+                </VideoInputLabel>
+              </VideoInputWrapper>
+              
+              {selectedVideoMovil && (
+                <UploadVideoButton 
+                  type="button" 
+                  onClick={handleVideoMovilSubmit}
+                  disabled={isUploadingVideoMovil}
+                >
+                  <FaUpload /> 
+                  {isUploadingVideoMovil ? 'Subiendo...' : 'Subir Video Móvil'}
+                </UploadVideoButton>
+              )}
+            </VideoUploadContainer>
+          )}
+
+          <VideoInfo>
+            <p><strong>Requisitos del video móvil:</strong></p>
+            <ul>
+              <li>Formato: MP4 únicamente</li>
+              <li>Duración: Entre 30 y 40 segundos</li>
+              <li>Tamaño máximo: 100MB</li>
+              <li>Optimizado para dispositivos móviles</li>
             </ul>
           </VideoInfo>
         </VideoSection>
