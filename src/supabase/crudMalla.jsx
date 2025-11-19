@@ -303,9 +303,15 @@ export async function EliminarVideoMovilMallaDelStorage(videoUrl) {
 // Función para actualizar video móvil de malla
 export async function ActualizarVideoMovilMalla(id_malla, nuevoVideoUrl, videoAnteriorUrl = null) {
   try {
-    console.log("ActualizarVideoMovilMalla - " + (nuevoVideoUrl ? "Actualizando" : "Eliminando") + " video móvil de malla");
+    console.log("ActualizarVideoMovilMalla - Parámetros recibidos:", {
+      id_malla,
+      nuevoVideoUrl,
+      videoAnteriorUrl,
+      operacion: nuevoVideoUrl ? "Actualizando" : "Eliminando"
+    });
     
     if (!id_malla) {
+      console.error("Error: id_malla es falsy:", id_malla);
       throw new Error("Faltan datos requeridos para actualizar el video móvil");
     }
 

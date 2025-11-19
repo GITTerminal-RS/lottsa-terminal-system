@@ -290,6 +290,11 @@ export function ModificarMalla({ dataSelect }) {
       toast.loading("Eliminando video móvil...");
 
       // Actualizar video móvil en la base de datos a null (elimina automáticamente del storage)
+      console.log("handleVideoMovilDelete - Llamando ActualizarVideoMovilMalla con:", {
+        id: dataSelect.id,
+        nuevoVideoUrl: null,
+        videoAnteriorUrl: currentVideoMovilUrl
+      });
       await ActualizarVideoMovilMalla(dataSelect.id, null, currentVideoMovilUrl);
       
       // Actualizar estados
