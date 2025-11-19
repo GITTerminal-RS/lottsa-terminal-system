@@ -516,14 +516,18 @@ export function InformativaTemplate() {
 
   // Determinar qué video usar como portada
   const videoPortada = (() => {
-    // Si hay video en la malla, usarlo como portada
-    if (mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link') {
-      return mallaData.video;
+    // Para dispositivos móviles: SIEMPRE usar video móvil dedicado
+    if (isMobile) {
+      return PortadaMovil;
     }
     
-    // Si no hay video de malla, usar video específico según dispositivo
-    // TEMPORAL: PortadaPG.mp4 está en .gitignore, usar PortadaMovil como fallback
-    return isMobile ? PortadaMovil : PortadaMovil; // Usar video móvil para ambos por ahora
+    // Para web/desktop: usar video de malla si existe, sino PortadaPG
+    if (mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link') {
+      return mallaData.video; // Video de malla para web
+    }
+    
+    // Fallback para web: PortadaPG (temporal: usar PortadaMovil porque PortadaPG está en .gitignore)
+    return PortadaMovil; // TODO: cambiar a PortadaPG cuando esté disponible
   })();
 
   console.log('🎬 Selección de video:', {
@@ -539,9 +543,11 @@ export function InformativaTemplate() {
   
   console.log('📱 Dispositivo móvil detectado:', isMobile);
   console.log('🎥 Video de portada seleccionado:', 
-    mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link' 
-      ? `Video de malla: ${mallaData.video}` 
-      : `Video móvil (usado para ambos): ${PortadaMovil}`
+    isMobile 
+      ? `📱 Video móvil: ${PortadaMovil}` 
+      : mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link'
+        ? `💻 Video de malla (web): ${mallaData.video}`
+        : `💻 Video web fallback: ${PortadaMovil} (temporal)`
   );
 
   return (
