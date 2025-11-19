@@ -208,6 +208,12 @@ export function InformativaTemplate() {
   const [mallaLoaded, setMallaLoaded] = useState(false);
   const [openViajaYa, setOpenViajaYa] = useState(false);
 
+  // Función helper para detectar dispositivos móviles
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           window.innerWidth <= 768;
+  };
+
   // Migrar obtenerNoticias a useQuery (usa QueryClient global)
   const { 
     data: noticias = [], 
@@ -233,6 +239,22 @@ export function InformativaTemplate() {
     cacheTime: 15 * 60 * 1000, // 15 minutos
     refetchOnMount: false,
   });
+
+  // useEffect para detectar cambios de tamaño de ventana (debe estar con los otros hooks)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(isMobileDevice());
+    };
+
+    // Verificar al cargar
+    checkMobile();
+
+    // Agregar listener para cambios de tamaño
+    window.addEventListener('resize', checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -476,27 +498,6 @@ export function InformativaTemplate() {
   console.log('viajaYa:', viajaYa, 'loadingViajaYa:', loadingViajaYa, 'openViajaYa:', openViajaYa);
   const viajaYaToShow = viajaYa || [];
 
-  // Función para detectar dispositivos móviles
-  const isMobileDevice = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           window.innerWidth <= 768;
-  };
-
-  // useEffect para detectar cambios de tamaño de ventana
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(isMobileDevice());
-    };
-
-    // Verificar al cargar
-    checkMobile();
-
-    // Agregar listener para cambios de tamaño
-    window.addEventListener('resize', checkMobile);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Determinar qué video usar como portada
   const videoPortada = (() => {
