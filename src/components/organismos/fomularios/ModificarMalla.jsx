@@ -217,19 +217,19 @@ export function ModificarMalla({ dataSelect }) {
         return;
       }
 
-      // Validar duración del video (entre 30 y 40 segundos)
+      // Validar duración del video móvil (entre 15 y 30 segundos)
       try {
         const videoDuration = await getVideoDuration(file);
-        if (videoDuration < 30) {
-          toast.error("El video debe tener una duración mínima de 30 segundos");
+        if (videoDuration < 15) {
+          toast.error("El video móvil debe tener una duración mínima de 15 segundos");
           return;
         }
-        if (videoDuration > 40) {
-          toast.error("El video debe tener una duración máxima de 40 segundos");
+        if (videoDuration > 30) {
+          toast.error("El video móvil debe tener una duración máxima de 30 segundos");
           return;
         }
       } catch (error) {
-        toast.error("No se pudo verificar la duración del video");
+        toast.error("No se pudo verificar la duración del video móvil");
         return;
       }
 
@@ -471,7 +471,7 @@ export function ModificarMalla({ dataSelect }) {
             <p><strong>Requisitos del video móvil:</strong></p>
             <ul>
               <li>Formato: MP4 únicamente</li>
-              <li>Duración: Entre 30 y 40 segundos</li>
+              <li>Duración: Entre 15 y 30 segundos</li>
               <li>Tamaño máximo: 100MB</li>
               <li>Optimizado para dispositivos móviles</li>
             </ul>

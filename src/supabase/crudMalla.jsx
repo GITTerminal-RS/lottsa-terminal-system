@@ -222,13 +222,13 @@ export async function SubirVideoMovilMallaAlStorage(file, id_malla) {
       throw new Error("El archivo es demasiado grande. Máximo 100MB");
     }
 
-    // Validar duración del video (entre 30 y 40 segundos)
+    // Validar duración del video móvil (entre 15 y 30 segundos)
     const videoDuration = await getVideoDuration(file);
-    if (videoDuration < 30) {
-      throw new Error("El video debe tener una duración mínima de 30 segundos");
+    if (videoDuration < 15) {
+      throw new Error("El video móvil debe tener una duración mínima de 15 segundos");
     }
-    if (videoDuration > 40) {
-      throw new Error("El video debe tener una duración máxima de 40 segundos");
+    if (videoDuration > 30) {
+      throw new Error("El video móvil debe tener una duración máxima de 30 segundos");
     }
 
     // Generar nombre único para el archivo (con sufijo _mobile)
