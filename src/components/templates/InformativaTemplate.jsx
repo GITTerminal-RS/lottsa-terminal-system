@@ -512,6 +512,7 @@ export function InformativaTemplate() {
   console.log('viajaYa:', viajaYa, 'loadingViajaYa:', loadingViajaYa, 'openViajaYa:', openViajaYa);
   const viajaYaToShow = viajaYa || [];
 
+  console.log('🚀 Llegando a selección de video...', { mallaData, isMobile });
 
   // Determinar qué video usar como portada
   const videoPortada = (() => {
@@ -521,7 +522,8 @@ export function InformativaTemplate() {
     }
     
     // Si no hay video de malla, usar video específico según dispositivo
-    return isMobile ? PortadaMovil : PortadaPG;
+    // TEMPORAL: PortadaPG.mp4 está en .gitignore, usar PortadaMovil como fallback
+    return isMobile ? PortadaMovil : PortadaMovil; // Usar video móvil para ambos por ahora
   })();
 
   console.log('🎬 Selección de video:', {
@@ -530,16 +532,16 @@ export function InformativaTemplate() {
     mallaVideo: mallaData?.video,
     videoPortada: videoPortada,
     PortadaMovil: PortadaMovil,
-    PortadaPG: PortadaPG
+    PortadaPG: PortadaPG,
+    videoPortadaType: typeof videoPortada,
+    videoPortadaLength: videoPortada?.length
   });
   
   console.log('📱 Dispositivo móvil detectado:', isMobile);
   console.log('🎥 Video de portada seleccionado:', 
     mallaData?.video && mallaData.video.trim() !== '' && mallaData.video !== 'link' 
       ? `Video de malla: ${mallaData.video}` 
-      : isMobile 
-        ? `Video móvil: ${PortadaMovil}` 
-        : `Video web: ${PortadaPG}`
+      : `Video móvil (usado para ambos): ${PortadaMovil}`
   );
 
   return (
