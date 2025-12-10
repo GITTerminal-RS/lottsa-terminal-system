@@ -13,6 +13,8 @@ import { FaArrowsAltV } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { MostrarUsuarios } from '../../../supabase/crudUsuarios';
 import { useOperadoraStore } from '../../../store/OperadoraStore';
+import { ContentAccionesTablaUsuarios } from '../ContentAccionesTablaUsuarios';
+import { CambiarClaveUsuarioModal } from '../../modals/CambiarClaveUsuarioModal';
 
 export function TablaUsuarios({
   data,
@@ -25,6 +27,8 @@ export function TablaUsuarios({
   const [tipoUsuarioActual, setTipoUsuarioActual] = useState("");
   const { dataoperadora } = useOperadoraStore();
   const [usuarioActual, setUsuarioActual] = useState(null);
+  const [modalCambiarClave, setModalCambiarClave] = useState(false);
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
 
   useEffect(() => {
     async function getTipoUsuario() {
@@ -100,6 +104,17 @@ export function TablaUsuarios({
       }
     });
   };
+
+  const abrirModalCambiarClave = (usuario) => {
+    setUsuarioSeleccionado(usuario);
+    setModalCambiarClave(true);
+  };
+
+  const cerrarModalCambiarClave = () => {
+    setModalCambiarClave(false);
+    setUsuarioSeleccionado(null);
+  };
+
   const columns = [
     {
       accessorKey: "nombres",
@@ -127,14 +142,24 @@ export function TablaUsuarios({
       accessorKey: "acciones",
       header: "",
       enableSorting:false,
-      cell: (info) => (
-        <td className="ContentCell">
-          <ContentAccionesTabla
-            funcionEditar={() => editar(info.row.original)}
-            funcionEliminar={() => eliminar(info.row.original)}
-          />
-        </td>
-      ),
+      cell: (info) => {
+        const usuario = info.row.original;
+        const esRoot = tipoUsuarioActual === "root";
+        const esSuperadmin = usuario.tipouser === "superadmin";
+        const mostrarCambiarClave = esRoot && esSuperadmin;
+
+        return (
+          <td className="ContentCell">
+            <ContentAccionesTablaUsuarios
+              funcionEditar={() => editar(usuario)}
+              funcionEliminar={() => eliminar(usuario)}
+              funcionCambiarClave={abrirModalCambiarClave}
+              mostrarCambiarClave={mostrarCambiarClave}
+              usuario={usuario}
+            />
+          </td>
+        );
+      },
     },
   ];
   const table = useReactTable({
@@ -196,6 +221,12 @@ export function TablaUsuarios({
       pagina = {table.getState().pagination.pageIndex+1}
       setPagina={setPagina}
       maximo={table.getPageCount()}/>
+      
+      <CambiarClaveUsuarioModal
+        isOpen={modalCambiarClave}
+        onClose={cerrarModalCambiarClave}
+        usuario={usuarioSeleccionado}
+      />
     </Container>
   );
 }
