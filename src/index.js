@@ -114,5 +114,3 @@ export * from './utils/Conversiones';
 export * from './utils/dataEstatica';
 export * from './components/organismos/TablaOperadora';
 export * from './components/organismos/FooterInformativa';
-export * from './components/organismos/ContentAccionesTablaUsuarios';
-export * from './components/modals/CambiarClaveUsuarioModal';
