@@ -1,220 +1,315 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { RiLockPasswordLine, RiCloseLine } from "react-icons/ri";
+import { FaUser } from "react-icons/fa";
 import { InputText } from "../organismos/fomularios/InputText";
 import { Btnsave } from "../moleculas/Btnsave";
 import { CambiarClaveUsuario } from "../../supabase/crudUsuarios";
-import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 
-export function CambiarClaveUsuarioModal({ 
-  isOpen, 
-  onClose, 
-  usuario,
-  tipoUsuarioActual 
-}) {
+export function CambiarClaveUsuarioModal({ usuario, onClose, onSuccess }) {
   const [nuevaClave, setNuevaClave] = useState("");
   const [confirmarClave, setConfirmarClave] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Solo permitir si es usuario root y el objetivo es superadmin
-  const puedeChangiarClave = tipoUsuarioActual === "root" && usuario?.tipouser === "superadmin";
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!puedeChangiarClave) {
-      Swal.fire({
-        icon: "error",
-        title: "Sin permisos",
-        text: "Solo el usuario root puede cambiar claves de superadmin.",
-      });
-      return;
-    }
-
+    // Validaciones
     if (!nuevaClave || !confirmarClave) {
-      Swal.fire({
-        icon: "warning",
-        title: "Campos incompletos",
-        text: "Debes completar ambos campos.",
-      });
-      return;
-    }
-
-    if (nuevaClave !== confirmarClave) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Las contraseñas no coinciden.",
-      });
+      toast.error("Debes completar ambos campos");
       return;
     }
 
     if (nuevaClave.length < 6) {
-      Swal.fire({
-        icon: "warning",
-        title: "Contraseña muy corta",
-        text: "La contraseña debe tener al menos 6 caracteres.",
-      });
+      toast.error("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    if (nuevaClave !== confirmarClave) {
+      toast.error("Las contraseñas no coinciden");
       return;
     }
 
     try {
       setLoading(true);
-      
+      toast.loading("Cambiando contraseña...");
+
       await CambiarClaveUsuario(usuario.idauth, nuevaClave);
       
-      Swal.fire({
-        icon: "success",
-        title: "¡Éxito!",
-        text: `Contraseña de ${usuario.nombres} cambiada exitosamente.`,
-        timer: 2000,
-        showConfirmButton: false
-      });
-
-      // Limpiar formulario y cerrar modal
+      toast.dismiss();
+      toast.success(`Contraseña cambiada exitosamente para ${usuario.nombres}`);
+      
+      // Limpiar campos
       setNuevaClave("");
       setConfirmarClave("");
-      onClose();
       
+      // Llamar callback de éxito si existe
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      // Cerrar modal después de un breve delay
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+
     } catch (error) {
+      toast.dismiss();
       console.error("Error al cambiar contraseña:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message || "Error al cambiar la contraseña",
-      });
+      toast.error(error.message || "Error al cambiar la contraseña");
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    setNuevaClave("");
-    setConfirmarClave("");
-    onClose();
+    if (!loading) {
+      onClose();
+    }
   };
 
-  if (!isOpen || !puedeChangiarClave) return null;
-
   return (
-    <ModalOverlay onClick={handleClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
+    <Overlay onClick={handleClose}>
+      <ModalContainer onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
-          <h3>Cambiar Contraseña</h3>
-          <CloseButton onClick={handleClose}>
+          <div className="header-content">
+            <FaUser className="user-icon" />
+            <div className="user-info">
+              <h3>Cambiar Contraseña</h3>
+              <p>Usuario: <strong>{usuario.nombres}</strong></p>
+              <span className="user-type">Tipo: {usuario.tipouser}</span>
+            </div>
+          </div>
+          <button 
+            className="close-btn" 
+            onClick={handleClose}
+            disabled={loading}
+          >
             <RiCloseLine />
-          </CloseButton>
+          </button>
         </ModalHeader>
 
-        <UserInfo>
-          <strong>Usuario:</strong> {usuario?.nombres}
-          <br />
-          <strong>Tipo:</strong> {usuario?.tipouser}
-        </UserInfo>
+        <ModalBody>
+          <form onSubmit={handleSubmit}>
+            <InputText icono={<RiLockPasswordLine />}>
+              <input
+                className="form__field"
+                type="password"
+                placeholder="Nueva contraseña"
+                value={nuevaClave}
+                onChange={(e) => setNuevaClave(e.target.value)}
+                minLength={6}
+                required
+                disabled={loading}
+              />
+              <label className="form__label">Nueva contraseña</label>
+            </InputText>
 
-        <form onSubmit={handleSubmit}>
-          <InputText icono={<RiLockPasswordLine />}>
-            <input
-              className="form__field"
-              type="password"
-              placeholder="Nueva contraseña"
-              value={nuevaClave}
-              onChange={(e) => setNuevaClave(e.target.value)}
-              minLength={6}
-              required
-            />
-            <label className="form__label">Nueva contraseña</label>
-          </InputText>
+            <InputText icono={<RiLockPasswordLine />}>
+              <input
+                className="form__field"
+                type="password"
+                placeholder="Confirmar contraseña"
+                value={confirmarClave}
+                onChange={(e) => setConfirmarClave(e.target.value)}
+                minLength={6}
+                required
+                disabled={loading}
+              />
+              <label className="form__label">Confirmar contraseña</label>
+            </InputText>
 
-          <InputText icono={<RiLockPasswordLine />}>
-            <input
-              className="form__field"
-              type="password"
-              placeholder="Confirmar contraseña"
-              value={confirmarClave}
-              onChange={(e) => setConfirmarClave(e.target.value)}
-              minLength={6}
-              required
-            />
-            <label className="form__label">Confirmar contraseña</label>
-          </InputText>
+            <div className="form-actions">
+              <button 
+                type="button" 
+                className="btn-cancel"
+                onClick={handleClose}
+                disabled={loading}
+              >
+                Cancelar
+              </button>
+              <Btnsave 
+                titulo={loading ? "Cambiando..." : "Cambiar Contraseña"} 
+                bgcolor="#3a4b86"
+                disabled={loading}
+              />
+            </div>
+          </form>
+        </ModalBody>
 
-          <ButtonContainer>
-            <Btnsave 
-              titulo={loading ? "Cambiando..." : "Cambiar Contraseña"} 
-              bgcolor="#3a4b86"
-              disabled={loading}
-            />
-          </ButtonContainer>
-        </form>
-      </ModalContent>
-    </ModalOverlay>
+        <ModalFooter>
+          <div className="warning">
+            <strong>⚠️ Advertencia:</strong> Esta acción cambiará permanentemente la contraseña del usuario.
+          </div>
+        </ModalFooter>
+      </ModalContainer>
+    </Overlay>
   );
 }
 
-const ModalOverlay = styled.div`
+const Overlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
+  padding: 20px;
 `;
 
-const ModalContent = styled.div`
+const ModalContainer = styled.div`
   background: ${({ theme }) => theme.bgcards};
   border-radius: 16px;
-  padding: 24px;
-  max-width: 400px;
-  width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
 `;
 
 const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  
-  h3 {
-    color: #3a4b86;
-    font-weight: 700;
-    margin: 0;
+  align-items: flex-start;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.border || 'rgba(0,0,0,0.1)'};
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+
+    .user-icon {
+      background: #3a4b86;
+      color: white;
+      padding: 12px;
+      border-radius: 50%;
+      font-size: 20px;
+      min-width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .user-info {
+      h3 {
+        margin: 0 0 4px 0;
+        color: #3a4b86;
+        font-weight: 700;
+        font-size: 18px;
+      }
+
+      p {
+        margin: 0 0 4px 0;
+        color: ${({ theme }) => theme.text};
+        font-size: 14px;
+      }
+
+      .user-type {
+        background: #3a4b86;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+    }
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: ${({ theme }) => theme.text};
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 0, 0, 0.1);
+      color: #ff4757;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 `;
 
-const CloseButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #666;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+const ModalBody = styled.div`
+  padding: 24px;
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+
+    .btn-cancel {
+      background: transparent;
+      border: 2px solid #ddd;
+      color: ${({ theme }) => theme.text};
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        border-color: #ff4757;
+        color: #ff4757;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
   }
 `;
 
-const UserInfo = styled.div`
-  background-color: rgba(58, 75, 134, 0.1);
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  color: ${({ theme }) => theme.text};
-  font-size: 14px;
-  line-height: 1.5;
-`;
+const ModalFooter = styled.div`
+  padding: 16px 24px 24px;
+  border-top: 1px solid ${({ theme }) => theme.border || 'rgba(0,0,0,0.1)'};
 
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
+  .warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+
+    strong {
+      color: #d63031;
+    }
+  }
 `;

@@ -7,14 +7,14 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import styled from "styled-components";
-import { ContentAccionesTabla, Paginacion, useRutaStore, useUsuariosStore, v } from "../../../index";
+import { Paginacion, useRutaStore, useUsuariosStore, v } from "../../../index";
+import { ContentAccionesTablaUsuarios } from "../ContentAccionesTablaUsuarios";
+import { CambiarClaveUsuarioModal } from "../../modals/CambiarClaveUsuarioModal";
 import Swal from "sweetalert2";
 import { FaArrowsAltV } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { MostrarUsuarios } from '../../../supabase/crudUsuarios';
 import { useOperadoraStore } from '../../../store/OperadoraStore';
-import { ContentAccionesTablaUsuarios } from '../ContentAccionesTablaUsuarios';
-import { CambiarClaveUsuarioModal } from '../../modals/CambiarClaveUsuarioModal';
 
 export function TablaUsuarios({
   data,
@@ -27,9 +27,7 @@ export function TablaUsuarios({
   const [tipoUsuarioActual, setTipoUsuarioActual] = useState("");
   const { dataoperadora } = useOperadoraStore();
   const [usuarioActual, setUsuarioActual] = useState(null);
-  
-  // Estados para el modal de cambiar clave
-  const [modalCambiarClaveOpen, setModalCambiarClaveOpen] = useState(false);
+  const [modalCambiarClave, setModalCambiarClave] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
 
   useEffect(() => {
@@ -108,27 +106,48 @@ export function TablaUsuarios({
   };
 
   const cambiarClave = (usuario) => {
-    // Solo root puede cambiar clave de superadmin
+    // Solo root puede cambiar contraseñas de superadmin
     if (tipoUsuarioActual !== "root") {
       Swal.fire({
         icon: "error",
-        title: "Sin permisos",
-        text: "Solo el usuario root puede cambiar contraseñas.",
+        title: "Acceso Denegado",
+        text: "Solo el usuario root puede cambiar contraseñas de otros usuarios.",
       });
       return;
     }
 
+    // Solo permitir cambiar clave a usuarios superadmin
     if (usuario.tipouser !== "superadmin") {
       Swal.fire({
         icon: "error",
-        title: "Usuario no válido",
+        title: "Acción No Permitida",
         text: "Solo se puede cambiar la contraseña de usuarios superadmin.",
       });
       return;
     }
 
+    // Verificar que el usuario tenga idauth
+    if (!usuario.idauth) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Este usuario no tiene ID de autenticación válido.",
+      });
+      return;
+    }
+
     setUsuarioSeleccionado(usuario);
-    setModalCambiarClaveOpen(true);
+    setModalCambiarClave(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalCambiarClave(false);
+    setUsuarioSeleccionado(null);
+  };
+
+  const handleSuccessModal = () => {
+    // Aquí podrías refrescar la tabla si es necesario
+    console.log("Contraseña cambiada exitosamente");
   };
 
   const columns = [
@@ -158,21 +177,19 @@ export function TablaUsuarios({
       accessorKey: "acciones",
       header: "",
       enableSorting:false,
-      cell: (info) => {
-        const usuario = info.row.original;
-        const mostrarCambiarClave = tipoUsuarioActual === "root" && usuario.tipouser === "superadmin";
-        
-        return (
-          <td className="ContentCell">
-            <ContentAccionesTablaUsuarios
-              funcionEditar={() => editar(usuario)}
-              funcionEliminar={() => eliminar(usuario)}
-              funcionCambiarClave={() => cambiarClave(usuario)}
-              mostrarCambiarClave={mostrarCambiarClave}
-            />
-          </td>
-        );
-      },
+      cell: (info) => (
+        <td className="ContentCell">
+          <ContentAccionesTablaUsuarios
+            funcionEditar={() => editar(info.row.original)}
+            funcionEliminar={() => eliminar(info.row.original)}
+            funcionCambiarClave={() => cambiarClave(info.row.original)}
+            mostrarCambiarClave={
+              tipoUsuarioActual === "root" && 
+              info.row.original.tipouser === "superadmin"
+            }
+          />
+        </td>
+      ),
     },
   ];
   const table = useReactTable({
@@ -196,15 +213,13 @@ export function TablaUsuarios({
   return (
     <Container>
       {/* Modal para cambiar contraseña */}
-      <CambiarClaveUsuarioModal
-        isOpen={modalCambiarClaveOpen}
-        onClose={() => {
-          setModalCambiarClaveOpen(false);
-          setUsuarioSeleccionado(null);
-        }}
-        usuario={usuarioSeleccionado}
-        tipoUsuarioActual={tipoUsuarioActual}
-      />
+      {modalCambiarClave && usuarioSeleccionado && (
+        <CambiarClaveUsuarioModal
+          usuario={usuarioSeleccionado}
+          onClose={handleCloseModal}
+          onSuccess={handleSuccessModal}
+        />
+      )}
       
       <table className="responsive-table">
         <thead>
