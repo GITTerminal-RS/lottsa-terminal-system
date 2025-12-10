@@ -114,4 +114,4 @@ GRANT EXECUTE ON FUNCTION cambiar_password_usuario(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION cambiar_password_usuario(UUID, TEXT) TO service_role;
 
 -- Comentario explicativo
-COMMENT ON FUNCTION cambiar_password_usuario IS 'Permite al usuario root cambiar contraseñas de otros usuarios. Corrige tipos de datos UUID vs TEXT.';
+COMMENT ON FUNCTION cambiar_password_usuario IS 'Permite al usuario root cambiar contraseñas de otros usuarios. Actualiza directamente la tabla auth.users con hash bcrypt.';
