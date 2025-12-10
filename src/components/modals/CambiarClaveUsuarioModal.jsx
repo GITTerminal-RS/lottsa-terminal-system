@@ -33,17 +33,25 @@ export function CambiarClaveUsuarioModal({ isOpen, onClose, usuario }) {
     setLoading(true);
     
     try {
+      console.log("🎯 Iniciando cambio de contraseña desde modal para:", usuario.nombres);
       const result = await CambiarClaveUsuario(usuario.idauth, nuevaClave);
       
+      console.log("✅ Resultado del cambio:", result);
+      
       if (result.message) {
-        toast.success(result.message);
+        toast.success(result.message, { duration: 4000 });
       } else {
-        toast.success(`Contraseña de ${usuario.nombres} cambiada exitosamente`);
+        toast.success(`Contraseña de ${usuario.nombres} cambiada exitosamente`, { duration: 4000 });
       }
+      
+      // Mostrar información adicional en consola
+      console.log(`🔐 Contraseña actualizada para ${usuario.nombres} (${usuario.idauth})`);
+      console.log("💡 El usuario debe cerrar sesión e iniciar con la nueva contraseña");
       
       handleClose();
     } catch (error) {
-      toast.error("Error al cambiar contraseña: " + error.message);
+      console.error("❌ Error en modal:", error);
+      toast.error("Error al cambiar contraseña: " + error.message, { duration: 6000 });
     } finally {
       setLoading(false);
     }

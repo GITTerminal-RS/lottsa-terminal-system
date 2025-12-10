@@ -122,8 +122,12 @@ export async function MostrarModulos() {
 // Función para cambiar contraseña de otros usuarios (solo para usuario root)
 export async function CambiarClaveUsuario(userId, nuevaClave) {
   try {
+    console.log("🔐 Iniciando cambio de contraseña para usuario:", userId);
+    
     // Verificar que el usuario actual sea root
     const usuarioActual = await MostrarUsuarios();
+    console.log("👤 Usuario actual:", usuarioActual);
+    
     if (!usuarioActual || usuarioActual.tipouser !== "root") {
       throw new Error("Solo el usuario root puede cambiar contraseñas de otros usuarios");
     }
@@ -133,41 +137,47 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
       throw new Error("La contraseña debe tener al menos 6 caracteres");
     }
 
-    // Intentar usar función RPC personalizada
+    console.log("🚀 Llamando función RPC cambiar_password_usuario...");
+    
+    // Usar función RPC personalizada
     const { data, error } = await supabase.rpc('cambiar_password_usuario', {
       target_user_id: userId,
       new_password: nuevaClave
     });
 
+    console.log("📊 Respuesta RPC:", { data, error });
+
     if (error) {
-      // Si la función RPC no está disponible, usar método alternativo
-      console.warn("Función RPC no disponible, usando método de notificación");
-      
-      // Marcar al usuario para que cambie su contraseña en el próximo login
-      const { data: updateData, error: updateError } = await supabase
-        .from('usuarios')
-        .update({ 
-          observaciones: `Contraseña debe ser cambiada por administrador. Nueva clave temporal: ${nuevaClave.substring(0, 3)}***`
-        })
-        .eq('idauth', userId)
-        .select()
-        .maybeSingle();
-
-      if (updateError) {
-        throw new Error("Error al actualizar información del usuario: " + updateError.message);
-      }
-
-      // Simular éxito para la demo
-      return { 
-        success: true, 
-        data: updateData,
-        message: "Se ha registrado la solicitud de cambio de contraseña. El usuario deberá contactar al administrador para completar el proceso."
-      };
+      console.error("❌ Error en RPC:", error);
+      throw new Error(`Error RPC: ${error.message || error.details || 'Error desconocido'}`);
     }
 
-    return { success: true, data };
+    // Verificar si la respuesta indica éxito
+    if (data && typeof data === 'object') {
+      if (data.success === false) {
+        throw new Error(data.error || 'Error desconocido en el cambio de contraseña');
+      }
+      
+      if (data.success === true) {
+        console.log("✅ Contraseña cambiada exitosamente");
+        return { 
+          success: true, 
+          data: data,
+          message: data.message || 'Contraseña actualizada exitosamente'
+        };
+      }
+    }
+
+    // Si llegamos aquí, asumir éxito
+    console.log("✅ Cambio completado (respuesta sin formato específico)");
+    return { 
+      success: true, 
+      data: data,
+      message: 'Contraseña actualizada exitosamente'
+    };
+
   } catch (error) {
-    console.error("Error al cambiar contraseña:", error);
+    console.error("💥 Error completo al cambiar contraseña:", error);
     throw error;
   }
 }
