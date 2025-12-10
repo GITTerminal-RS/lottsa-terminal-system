@@ -33,7 +33,6 @@ import { RegistrarSuperadminRoot } from '../components/organismos/fomularios/Reg
 import { Cartelera } from '../pages/Cartelera';
 import Noticias from '../pages/Noticias';
 import Malla from '../pages/Malla';
-import CambiarClaveTemplate from '../components/templates/CambiarClaveTemplate';
 
 // Wrapper component para DescubreViajaTemplate con navegación optimizada
 function DescubreViajaTemplateWrapper() {
@@ -157,11 +156,6 @@ export function MyRoutes() {
         </Layout>
       </ProtectedRoute>} />
       
-      <Route path="/cclave" element={<ProtectedRoute accessBy="authenticated">
-        <Layout>
-          <CambiarClaveTemplate />
-        </Layout>
-      </ProtectedRoute>} />
       
     </Routes>
   );

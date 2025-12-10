@@ -49,11 +49,6 @@ export const SecondarylinksArray = [
     icon: <AiOutlineSetting />,
     to: "/configurar",
   },
-  {
-    label: "Cambiar clave",
-    icon: <v.iconopass />,
-    to: "/cclave",
-  },
 ];
 //temas
 export const TemasData = [
