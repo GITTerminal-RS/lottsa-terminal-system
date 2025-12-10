@@ -137,37 +137,55 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
       throw new Error("La contraseña debe tener al menos 6 caracteres");
     }
 
-    console.log("🚀 Intentando cambio de contraseña con método compatible...");
+    console.log("🚀 Intentando cambio de contraseña con múltiples métodos...");
     
-    // Intentar con la función principal (sin pgcrypto)
+    // Método 1: Función principal
+    console.log("🔄 Método 1: Función principal...");
     const { data, error } = await supabase.rpc('cambiar_password_usuario', {
       target_user_id: userId,
       new_password: nuevaClave
     });
 
-    console.log("📊 Respuesta RPC:", { data, error });
+    console.log("📊 Respuesta Método 1:", { data, error });
 
-    if (error) {
-      console.error("❌ Error en función principal:", error);
-      
-      // Intentar con función alternativa
-      console.log("🔄 Intentando con función alternativa...");
-      const { data: data2, error: error2 } = await supabase.rpc('cambiar_password_usuario_directo', {
-        target_user_id: userId,
-        new_password: nuevaClave
-      });
-      
-      console.log("📊 Respuesta función alternativa:", { data: data2, error: error2 });
-      
-      if (error2) {
-        throw new Error(`Error en ambas funciones: ${error.message} | ${error2.message}`);
-      }
-      
-      // Usar resultado de función alternativa
-      return procesarRespuestaRPC(data2, "función alternativa");
+    if (!error && data && data.success) {
+      return procesarRespuestaRPC(data, "Método 1 - Función principal");
     }
 
-    return procesarRespuestaRPC(data, "función principal");
+    // Método 2: Función alternativa
+    console.log("🔄 Método 2: Función alternativa...");
+    const { data: data2, error: error2 } = await supabase.rpc('cambiar_password_usuario_directo', {
+      target_user_id: userId,
+      new_password: nuevaClave
+    });
+    
+    console.log("📊 Respuesta Método 2:", { data: data2, error: error2 });
+    
+    if (!error2 && data2 && data2.success) {
+      return procesarRespuestaRPC(data2, "Método 2 - Función alternativa");
+    }
+
+    // Método 3: Función simple
+    console.log("🔄 Método 3: Función simple...");
+    const { data: data3, error: error3 } = await supabase.rpc('cambiar_password_simple', {
+      target_user_id: userId,
+      new_password: nuevaClave
+    });
+    
+    console.log("📊 Respuesta Método 3:", { data: data3, error: error3 });
+    
+    if (!error3 && data3 && data3.success) {
+      return procesarRespuestaRPC(data3, "Método 3 - Función simple");
+    }
+
+    // Si todos los métodos fallan
+    const errorMsg = `Todos los métodos fallaron:
+    Método 1: ${error?.message || 'Sin error específico'}
+    Método 2: ${error2?.message || 'Sin error específico'}  
+    Método 3: ${error3?.message || 'Sin error específico'}`;
+    
+    console.error("❌ Todos los métodos fallaron:", errorMsg);
+    throw new Error(errorMsg);
 
   } catch (error) {
     console.error("💥 Error completo al cambiar contraseña:", error);
