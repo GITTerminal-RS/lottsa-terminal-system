@@ -27,7 +27,9 @@ export function TablaUsuarios({
   const [tipoUsuarioActual, setTipoUsuarioActual] = useState("");
   const { dataoperadora } = useOperadoraStore();
   const [usuarioActual, setUsuarioActual] = useState(null);
-  const [modalCambiarClave, setModalCambiarClave] = useState(false);
+  
+  // Estados para el modal de cambiar clave
+  const [modalCambiarClaveOpen, setModalCambiarClaveOpen] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
 
   useEffect(() => {
@@ -105,14 +107,28 @@ export function TablaUsuarios({
     });
   };
 
-  const abrirModalCambiarClave = (usuario) => {
-    setUsuarioSeleccionado(usuario);
-    setModalCambiarClave(true);
-  };
+  const cambiarClave = (usuario) => {
+    // Solo root puede cambiar clave de superadmin
+    if (tipoUsuarioActual !== "root") {
+      Swal.fire({
+        icon: "error",
+        title: "Sin permisos",
+        text: "Solo el usuario root puede cambiar contraseñas.",
+      });
+      return;
+    }
 
-  const cerrarModalCambiarClave = () => {
-    setModalCambiarClave(false);
-    setUsuarioSeleccionado(null);
+    if (usuario.tipouser !== "superadmin") {
+      Swal.fire({
+        icon: "error",
+        title: "Usuario no válido",
+        text: "Solo se puede cambiar la contraseña de usuarios superadmin.",
+      });
+      return;
+    }
+
+    setUsuarioSeleccionado(usuario);
+    setModalCambiarClaveOpen(true);
   };
 
   const columns = [
@@ -144,18 +160,15 @@ export function TablaUsuarios({
       enableSorting:false,
       cell: (info) => {
         const usuario = info.row.original;
-        const esRoot = tipoUsuarioActual === "root";
-        const esSuperadmin = usuario.tipouser === "superadmin";
-        const mostrarCambiarClave = esRoot && esSuperadmin;
-
+        const mostrarCambiarClave = tipoUsuarioActual === "root" && usuario.tipouser === "superadmin";
+        
         return (
           <td className="ContentCell">
             <ContentAccionesTablaUsuarios
               funcionEditar={() => editar(usuario)}
               funcionEliminar={() => eliminar(usuario)}
-              funcionCambiarClave={abrirModalCambiarClave}
+              funcionCambiarClave={() => cambiarClave(usuario)}
               mostrarCambiarClave={mostrarCambiarClave}
-              usuario={usuario}
             />
           </td>
         );
@@ -182,6 +195,17 @@ export function TablaUsuarios({
   });
   return (
     <Container>
+      {/* Modal para cambiar contraseña */}
+      <CambiarClaveUsuarioModal
+        isOpen={modalCambiarClaveOpen}
+        onClose={() => {
+          setModalCambiarClaveOpen(false);
+          setUsuarioSeleccionado(null);
+        }}
+        usuario={usuarioSeleccionado}
+        tipoUsuarioActual={tipoUsuarioActual}
+      />
+      
       <table className="responsive-table">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -221,12 +245,6 @@ export function TablaUsuarios({
       pagina = {table.getState().pagination.pageIndex+1}
       setPagina={setPagina}
       maximo={table.getPageCount()}/>
-      
-      <CambiarClaveUsuarioModal
-        isOpen={modalCambiarClave}
-        onClose={cerrarModalCambiarClave}
-        usuario={usuarioSeleccionado}
-      />
     </Container>
   );
 }

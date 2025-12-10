@@ -6,8 +6,7 @@ export function ContentAccionesTablaUsuarios({
   funcionEditar, 
   funcionEliminar, 
   funcionCambiarClave,
-  mostrarCambiarClave = false,
-  usuario 
+  mostrarCambiarClave = false 
 }) {
   return (
     <Container>
@@ -29,11 +28,10 @@ export function ContentAccionesTablaUsuarios({
       
       {mostrarCambiarClave && funcionCambiarClave && (
         <AccionTabla
-          funcion={() => funcionCambiarClave(usuario)}
+          funcion={funcionCambiarClave}
           fontSize="18px"
           color="#3a4b86"
           icono={<RiLockPasswordLine />}
-          title="Cambiar contraseña"
         />
       )}
     </Container>

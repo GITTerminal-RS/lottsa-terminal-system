@@ -4,72 +4,85 @@ import { RiLockPasswordLine, RiCloseLine } from "react-icons/ri";
 import { InputText } from "../organismos/fomularios/InputText";
 import { Btnsave } from "../moleculas/Btnsave";
 import { CambiarClaveUsuario } from "../../supabase/crudUsuarios";
-import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
-export function CambiarClaveUsuarioModal({ isOpen, onClose, usuario }) {
+export function CambiarClaveUsuarioModal({ 
+  isOpen, 
+  onClose, 
+  usuario,
+  tipoUsuarioActual 
+}) {
   const [nuevaClave, setNuevaClave] = useState("");
   const [confirmarClave, setConfirmarClave] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Solo permitir si es usuario root y el objetivo es superadmin
+  const puedeChangiarClave = tipoUsuarioActual === "root" && usuario?.tipouser === "superadmin";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validaciones
-    if (!nuevaClave || !confirmarClave) {
-      toast.error("Debes completar ambos campos");
-      return;
-    }
-    
-    if (nuevaClave !== confirmarClave) {
-      toast.error("Las contraseñas no coinciden");
-      return;
-    }
-    
-    if (nuevaClave.length < 6) {
-      toast.error("La contraseña debe tener al menos 6 caracteres");
+    if (!puedeChangiarClave) {
+      Swal.fire({
+        icon: "error",
+        title: "Sin permisos",
+        text: "Solo el usuario root puede cambiar claves de superadmin.",
+      });
       return;
     }
 
-    setLoading(true);
-    
+    if (!nuevaClave || !confirmarClave) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Debes completar ambos campos.",
+      });
+      return;
+    }
+
+    if (nuevaClave !== confirmarClave) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Las contraseñas no coinciden.",
+      });
+      return;
+    }
+
+    if (nuevaClave.length < 6) {
+      Swal.fire({
+        icon: "warning",
+        title: "Contraseña muy corta",
+        text: "La contraseña debe tener al menos 6 caracteres.",
+      });
+      return;
+    }
+
     try {
-      console.log("🎯 Iniciando cambio de contraseña desde modal para:", usuario.nombres);
-      const result = await CambiarClaveUsuario(usuario.idauth, nuevaClave);
+      setLoading(true);
       
-      console.log("✅ Resultado del cambio:", result);
+      await CambiarClaveUsuario(usuario.idauth, nuevaClave);
       
-      if (result.showPassword && result.newPassword) {
-        // Mostrar la nueva contraseña en un toast especial
-        toast.success(
-          `✅ Contraseña registrada para ${usuario.nombres}\n\n🔑 Nueva contraseña: ${result.newPassword}\n\n⚠️ El usuario debe cerrar sesión e iniciar con esta contraseña`,
-          { 
-            duration: 10000,
-            style: {
-              background: '#f0f9ff',
-              border: '2px solid #3a4b86',
-              color: '#1e40af',
-              fontSize: '14px',
-              maxWidth: '500px'
-            }
-          }
-        );
-        
-        // También mostrar en consola para referencia
-        console.log(`🔐 NUEVA CONTRASEÑA PARA ${usuario.nombres.toUpperCase()}:`);
-        console.log(`📧 Email: ${usuario.email || 'N/A'}`);
-        console.log(`🔑 Contraseña: ${result.newPassword}`);
-        console.log(`💡 INSTRUCCIONES: El usuario debe cerrar sesión e iniciar con la nueva contraseña`);
-        
-      } else if (result.message) {
-        toast.success(result.message, { duration: 6000 });
-      } else {
-        toast.success(`Contraseña de ${usuario.nombres} cambiada exitosamente`, { duration: 4000 });
-      }
+      Swal.fire({
+        icon: "success",
+        title: "¡Éxito!",
+        text: `Contraseña de ${usuario.nombres} cambiada exitosamente.`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // Limpiar formulario y cerrar modal
+      setNuevaClave("");
+      setConfirmarClave("");
+      onClose();
       
-      handleClose();
     } catch (error) {
-      console.error("❌ Error en modal:", error);
-      toast.error("Error al cambiar contraseña: " + error.message, { duration: 6000 });
+      console.error("Error al cambiar contraseña:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Error al cambiar la contraseña",
+      });
     } finally {
       setLoading(false);
     }
@@ -78,25 +91,25 @@ export function CambiarClaveUsuarioModal({ isOpen, onClose, usuario }) {
   const handleClose = () => {
     setNuevaClave("");
     setConfirmarClave("");
-    setLoading(false);
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !puedeChangiarClave) return null;
 
   return (
-    <Overlay onClick={handleClose}>
-      <ModalContainer onClick={(e) => e.stopPropagation()}>
-        <Header>
-          <h2>Cambiar Contraseña</h2>
+    <ModalOverlay onClick={handleClose}>
+      <ModalContent onClick={(e) => e.stopPropagation()}>
+        <ModalHeader>
+          <h3>Cambiar Contraseña</h3>
           <CloseButton onClick={handleClose}>
             <RiCloseLine />
           </CloseButton>
-        </Header>
-        
+        </ModalHeader>
+
         <UserInfo>
-          <span>Usuario: <strong>{usuario?.nombres}</strong></span>
-          <span>Tipo: <strong>{usuario?.tipouser}</strong></span>
+          <strong>Usuario:</strong> {usuario?.nombres}
+          <br />
+          <strong>Tipo:</strong> {usuario?.tipouser}
         </UserInfo>
 
         <form onSubmit={handleSubmit}>
@@ -109,7 +122,6 @@ export function CambiarClaveUsuarioModal({ isOpen, onClose, usuario }) {
               onChange={(e) => setNuevaClave(e.target.value)}
               minLength={6}
               required
-              disabled={loading}
             />
             <label className="form__label">Nueva contraseña</label>
           </InputText>
@@ -123,7 +135,6 @@ export function CambiarClaveUsuarioModal({ isOpen, onClose, usuario }) {
               onChange={(e) => setConfirmarClave(e.target.value)}
               minLength={6}
               required
-              disabled={loading}
             />
             <label className="form__label">Confirmar contraseña</label>
           </InputText>
@@ -136,42 +147,42 @@ export function CambiarClaveUsuarioModal({ isOpen, onClose, usuario }) {
             />
           </ButtonContainer>
         </form>
-      </ModalContainer>
-    </Overlay>
+      </ModalContent>
+    </ModalOverlay>
   );
 }
 
-const Overlay = styled.div`
+const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 `;
 
-const ModalContainer = styled.div`
+const ModalContent = styled.div`
   background: ${({ theme }) => theme.bgcards};
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   padding: 24px;
-  width: 90%;
   max-width: 400px;
+  width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 `;
 
-const Header = styled.div`
+const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
   
-  h2 {
+  h3 {
     color: #3a4b86;
     font-weight: 700;
     margin: 0;
@@ -186,31 +197,20 @@ const CloseButton = styled.button`
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  transition: all 0.2s ease;
   
   &:hover {
-    background: rgba(0, 0, 0, 0.1);
-    color: #333;
+    background-color: rgba(0, 0, 0, 0.1);
   }
 `;
 
 const UserInfo = styled.div`
-  background: rgba(58, 75, 134, 0.1);
-  padding: 12px 16px;
+  background-color: rgba(58, 75, 134, 0.1);
+  padding: 12px;
   border-radius: 8px;
   margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  
-  span {
-    font-size: 14px;
-    color: ${({ theme }) => theme.text};
-    
-    strong {
-      color: #3a4b86;
-    }
-  }
+  color: ${({ theme }) => theme.text};
+  font-size: 14px;
+  line-height: 1.5;
 `;
 
 const ButtonContainer = styled.div`
