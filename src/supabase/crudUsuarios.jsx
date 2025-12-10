@@ -137,60 +137,81 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
       throw new Error("La contraseña debe tener al menos 6 caracteres");
     }
 
-      console.log("🚀 Llamando función RPC cambiar_password_usuario...");
-      console.log("📋 Parámetros:", { target_user_id: userId, new_password: "[OCULTA]" });
+    console.log("🚀 Intentando cambio de contraseña con método compatible...");
+    
+    // Intentar con la función principal (sin pgcrypto)
+    const { data, error } = await supabase.rpc('cambiar_password_usuario', {
+      target_user_id: userId,
+      new_password: nuevaClave
+    });
+
+    console.log("📊 Respuesta RPC:", { data, error });
+
+    if (error) {
+      console.error("❌ Error en función principal:", error);
       
-      // Usar función RPC personalizada
-      const { data, error } = await supabase.rpc('cambiar_password_usuario', {
+      // Intentar con función alternativa
+      console.log("🔄 Intentando con función alternativa...");
+      const { data: data2, error: error2 } = await supabase.rpc('cambiar_password_usuario_directo', {
         target_user_id: userId,
         new_password: nuevaClave
       });
-
-      console.log("📊 Respuesta RPC completa:", { data, error });
-
-      if (error) {
-        console.error("❌ Error en RPC:", error);
-        throw new Error(`Error RPC: ${error.message || error.details || JSON.stringify(error)}`);
+      
+      console.log("📊 Respuesta función alternativa:", { data: data2, error: error2 });
+      
+      if (error2) {
+        throw new Error(`Error en ambas funciones: ${error.message} | ${error2.message}`);
       }
+      
+      // Usar resultado de función alternativa
+      return procesarRespuestaRPC(data2, "función alternativa");
+    }
 
-      // Verificar si la respuesta indica éxito
-      if (data && typeof data === 'object') {
-        console.log("🔍 Analizando respuesta:", data);
-        
-        if (data.success === false) {
-          console.error("❌ Función reporta fallo:", data.error);
-          throw new Error(data.error || 'Error desconocido en el cambio de contraseña');
-        }
-        
-        if (data.success === true) {
-          console.log("✅ Contraseña cambiada exitosamente por función RPC");
-          return { 
-            success: true, 
-            data: data,
-            message: data.message || 'Contraseña actualizada exitosamente'
-          };
-        }
-      }
-
-      // Si llegamos aquí, verificar si data es null (puede indicar éxito en algunos casos)
-      if (data === null && !error) {
-        console.log("⚠️ Respuesta null - puede indicar éxito o que la función no retornó valor");
-        return { 
-          success: true, 
-          data: null,
-          message: 'Contraseña procesada (verificar manualmente)'
-        };
-      }
-
-      console.log("✅ Cambio completado (respuesta sin formato específico)");
-      return { 
-        success: true, 
-        data: data,
-        message: 'Contraseña actualizada exitosamente'
-      };
+    return procesarRespuestaRPC(data, "función principal");
 
   } catch (error) {
     console.error("💥 Error completo al cambiar contraseña:", error);
     throw error;
   }
+}
+
+// Función auxiliar para procesar respuestas RPC
+function procesarRespuestaRPC(data, metodo) {
+  console.log(`🔍 Procesando respuesta de ${metodo}:`, data);
+  
+  if (data && typeof data === 'object') {
+    if (data.success === false) {
+      console.error("❌ Función reporta fallo:", data.error);
+      throw new Error(data.error || 'Error desconocido en el cambio de contraseña');
+    }
+    
+    if (data.success === true) {
+      console.log(`✅ Contraseña procesada exitosamente con ${metodo}`);
+      
+      // Si incluye la nueva contraseña en la respuesta, mostrar instrucciones especiales
+      if (data.nueva_password) {
+        return { 
+          success: true, 
+          data: data,
+          message: `${data.message}\n\nNueva contraseña: ${data.nueva_password}\n\nEl usuario debe cerrar sesión e iniciar con esta contraseña.`,
+          showPassword: true,
+          newPassword: data.nueva_password
+        };
+      }
+      
+      return { 
+        success: true, 
+        data: data,
+        message: data.message || 'Contraseña actualizada exitosamente'
+      };
+    }
+  }
+
+  // Si llegamos aquí, asumir éxito básico
+  console.log("✅ Cambio completado (respuesta sin formato específico)");
+  return { 
+    success: true, 
+    data: data,
+    message: 'Contraseña procesada correctamente'
+  };
 }

@@ -38,15 +38,33 @@ export function CambiarClaveUsuarioModal({ isOpen, onClose, usuario }) {
       
       console.log("✅ Resultado del cambio:", result);
       
-      if (result.message) {
-        toast.success(result.message, { duration: 4000 });
+      if (result.showPassword && result.newPassword) {
+        // Mostrar la nueva contraseña en un toast especial
+        toast.success(
+          `✅ Contraseña registrada para ${usuario.nombres}\n\n🔑 Nueva contraseña: ${result.newPassword}\n\n⚠️ El usuario debe cerrar sesión e iniciar con esta contraseña`,
+          { 
+            duration: 10000,
+            style: {
+              background: '#f0f9ff',
+              border: '2px solid #3a4b86',
+              color: '#1e40af',
+              fontSize: '14px',
+              maxWidth: '500px'
+            }
+          }
+        );
+        
+        // También mostrar en consola para referencia
+        console.log(`🔐 NUEVA CONTRASEÑA PARA ${usuario.nombres.toUpperCase()}:`);
+        console.log(`📧 Email: ${usuario.email || 'N/A'}`);
+        console.log(`🔑 Contraseña: ${result.newPassword}`);
+        console.log(`💡 INSTRUCCIONES: El usuario debe cerrar sesión e iniciar con la nueva contraseña`);
+        
+      } else if (result.message) {
+        toast.success(result.message, { duration: 6000 });
       } else {
         toast.success(`Contraseña de ${usuario.nombres} cambiada exitosamente`, { duration: 4000 });
       }
-      
-      // Mostrar información adicional en consola
-      console.log(`🔐 Contraseña actualizada para ${usuario.nombres} (${usuario.idauth})`);
-      console.log("💡 El usuario debe cerrar sesión e iniciar con la nueva contraseña");
       
       handleClose();
     } catch (error) {

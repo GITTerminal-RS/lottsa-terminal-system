@@ -66,6 +66,12 @@ Abre **DevTools (F12) → Console** y revisa los logs:
 - Vuelve a ejecutar el script SQL completo actualizado
 - El error se debe a comparación incorrecta entre campos UUID y TEXT
 
+#### **❌ Error: "function gen_salt(unknown) does not exist"**
+**Solución:** Extensión pgcrypto no disponible - SOLUCIONADO
+- La función ha sido actualizada para NO requerir pgcrypto
+- Usa método alternativo compatible con todas las configuraciones
+- Ejecuta el script SQL actualizado que incluye función sin dependencias
+
 #### **❌ Error: "permission denied for function"**
 **Solución:** Faltan permisos
 ```sql
