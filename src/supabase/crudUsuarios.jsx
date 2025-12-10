@@ -138,6 +138,7 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
     }
 
     console.log("🚀 Llamando función RPC cambiar_password_usuario...");
+    console.log("📋 Parámetros:", { target_user_id: userId, new_password: "[OCULTA]" });
     
     // Usar función RPC personalizada
     const { data, error } = await supabase.rpc('cambiar_password_usuario', {
@@ -145,21 +146,24 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
       new_password: nuevaClave
     });
 
-    console.log("📊 Respuesta RPC:", { data, error });
+    console.log("📊 Respuesta RPC completa:", { data, error });
 
     if (error) {
       console.error("❌ Error en RPC:", error);
-      throw new Error(`Error RPC: ${error.message || error.details || 'Error desconocido'}`);
+      throw new Error(`Error RPC: ${error.message || error.details || JSON.stringify(error)}`);
     }
 
     // Verificar si la respuesta indica éxito
     if (data && typeof data === 'object') {
+      console.log("🔍 Analizando respuesta:", data);
+      
       if (data.success === false) {
+        console.error("❌ Función reporta fallo:", data.error);
         throw new Error(data.error || 'Error desconocido en el cambio de contraseña');
       }
       
       if (data.success === true) {
-        console.log("✅ Contraseña cambiada exitosamente");
+        console.log("✅ Contraseña cambiada exitosamente por función RPC");
         return { 
           success: true, 
           data: data,
@@ -168,7 +172,16 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
       }
     }
 
-    // Si llegamos aquí, asumir éxito
+    // Si llegamos aquí, verificar si data es null (puede indicar éxito en algunos casos)
+    if (data === null && !error) {
+      console.log("⚠️ Respuesta null - puede indicar éxito o que la función no retornó valor");
+      return { 
+        success: true, 
+        data: null,
+        message: 'Contraseña procesada (verificar manualmente)'
+      };
+    }
+
     console.log("✅ Cambio completado (respuesta sin formato específico)");
     return { 
       success: true, 

@@ -60,6 +60,12 @@ Abre **DevTools (F12) → Console** y revisa los logs:
 - Ejecuta nuevamente el script completo
 - Verifica que no hay errores de sintaxis
 
+#### **❌ Error: "operator does not exist: text = uuid"**
+**Solución:** Problema de tipos de datos corregido
+- La función SQL ha sido actualizada para manejar correctamente los tipos UUID
+- Vuelve a ejecutar el script SQL completo actualizado
+- El error se debe a comparación incorrecta entre campos UUID y TEXT
+
 #### **❌ Error: "permission denied for function"**
 **Solución:** Faltan permisos
 ```sql
