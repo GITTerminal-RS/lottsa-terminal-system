@@ -2,7 +2,7 @@
 -- Esta función se ejecuta en el servidor con permisos de servicio
 
 CREATE OR REPLACE FUNCTION cambiar_password_root(
-  target_user_id UUID,
+  target_user_id TEXT, -- Cambiado a TEXT para coincidir con idauth
   new_password TEXT
 )
 RETURNS JSON
@@ -10,13 +10,13 @@ LANGUAGE plpgsql
 SECURITY DEFINER -- Ejecuta con permisos del propietario (servicio)
 AS $$
 DECLARE
-  current_user_id UUID;
+  current_user_id TEXT; -- Cambiado a TEXT
   current_user_record RECORD;
   target_user_record RECORD;
   result JSON;
 BEGIN
-  -- Obtener el ID del usuario actual
-  current_user_id := auth.uid();
+  -- Obtener el ID del usuario actual y convertir a TEXT
+  current_user_id := auth.uid()::text;
   
   -- Verificar que hay un usuario autenticado
   IF current_user_id IS NULL THEN
@@ -85,7 +85,7 @@ BEGIN
     SET 
       encrypted_password = crypt(new_password, gen_salt('bf')),
       updated_at = NOW()
-    WHERE id = target_user_id;
+    WHERE id = target_user_id::uuid;
     
     -- Verificar que se actualizó correctamente
     IF NOT FOUND THEN
