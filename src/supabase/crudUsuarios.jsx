@@ -141,7 +141,7 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
     const { data, error } = await supabase
       .from('usuarios')
       .update({ 
-        password: nuevaClave,
+        pass: nuevaClave,
         updated_at: new Date().toISOString()
       })
       .eq('id', userId)
@@ -212,7 +212,7 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
     const { data: tempData, error: tempError } = await supabase
       .from('usuarios')
       .update({ 
-        password: tempPassword,
+        pass: tempPassword,
         updated_at: new Date().toISOString()
       })
       .eq('id', userId)
