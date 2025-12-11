@@ -4,8 +4,8 @@
 -- Simplemente crear o reemplazar la función directamente
 -- PostgreSQL manejará automáticamente las versiones conflictivas
 
--- Crear la función con los tipos correctos
-CREATE OR REPLACE FUNCTION cambiar_password_root(
+-- Crear la función con un nombre único para evitar conflictos
+CREATE OR REPLACE FUNCTION cambiar_password_root_v2(
   target_user_id TEXT, -- Cambiado a TEXT para coincidir con idauth
   new_password TEXT
 )
@@ -118,8 +118,8 @@ END;
 $$;
 
 -- Otorgar permisos de ejecución a usuarios autenticados
-GRANT EXECUTE ON FUNCTION cambiar_password_root(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION cambiar_password_root_v2(TEXT, TEXT) TO authenticated;
 
 -- Comentario sobre la función
-COMMENT ON FUNCTION cambiar_password_root(UUID, TEXT) IS 
+COMMENT ON FUNCTION cambiar_password_root_v2(TEXT, TEXT) IS 
 'Permite al usuario root cambiar contraseñas de usuarios superadmin de forma segura';

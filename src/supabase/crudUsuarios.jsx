@@ -156,7 +156,7 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
     // Cambiar contraseña usando función RPC segura
     console.log("🔄 Cambiando contraseña usando función RPC...");
     
-    const { data: rpcData, error: rpcError } = await supabase.rpc('cambiar_password_root', {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('cambiar_password_root_v2', {
       target_user_id: targetUser.idauth.toString(),
       new_password: nuevaClave
     });
