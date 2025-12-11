@@ -134,38 +134,8 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
       throw new Error("La contraseña debe tener al menos 6 caracteres");
     }
 
-    console.log("🚀 Intentando cambio de contraseña con método directo...");
-    
-    // Método 1: Actualizar directamente en la tabla usuarios
-    console.log("🔄 Método 1: Actualizando tabla usuarios...");
-    const { data, error } = await supabase
-      .from('usuarios')
-      .update({ 
-        pass: nuevaClave,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId)
-      .select('id, nombres, tipouser')
-      .single();
-
-    console.log("📊 Respuesta directa:", { data, error });
-
-    if (!error && data) {
-      console.log("✅ Contraseña actualizada exitosamente en tabla usuarios");
-      return {
-        success: true,
-        data: data,
-        message: `Contraseña actualizada exitosamente para ${data.nombres}`,
-        showPassword: false
-      };
-    }
-
-    console.log("⚠️ Método 1 falló, intentando método alternativo...");
-    
-    // Método 2: Obtener usuario y usar Admin API si está disponible
-    console.log("🔄 Método 2: Usando Admin API...");
-    
-    // Obtener el usuario objetivo para verificar que existe
+    // Obtener el usuario objetivo para verificar que existe y obtener su idauth
+    console.log("🔍 Buscando usuario objetivo...");
     const { data: targetUser, error: getUserError } = await supabase
       .from('usuarios')
       .select('id, nombres, tipouser, idauth')
@@ -178,66 +148,38 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
 
     console.log("👤 Usuario objetivo encontrado:", targetUser);
 
-    // Si el usuario tiene idauth, intentar actualizar en auth.users
-    if (targetUser.idauth) {
-      console.log("🔄 Intentando actualizar en auth.users...");
-      
-      try {
-        const { data: authData, error: authError } = await supabase.auth.admin.updateUserById(
-          targetUser.idauth,
-          { password: nuevaClave }
-        );
-
-        console.log("📊 Respuesta Auth Admin:", { authData, authError });
-
-        if (!authError && authData) {
-          console.log("✅ Contraseña actualizada en auth.users");
-          return {
-            success: true,
-            data: targetUser,
-            message: `Contraseña actualizada exitosamente para ${targetUser.nombres} (método auth)`,
-            showPassword: false
-          };
-        }
-      } catch (authError) {
-        console.log("⚠️ Admin API no disponible o falló:", authError.message);
-      }
+    // Verificar que el usuario tenga idauth (está registrado en auth.users)
+    if (!targetUser.idauth) {
+      throw new Error(`El usuario ${targetUser.nombres} no tiene registro de autenticación asociado`);
     }
 
-    // Método 3: Generar contraseña temporal como último recurso
-    console.log("🔄 Método 3: Generando contraseña temporal...");
-    const tempPassword = `temp_${Math.random().toString(36).substring(2, 8)}_${Date.now().toString().slice(-4)}`;
+    // Cambiar contraseña usando Supabase Auth Admin API
+    console.log("🔄 Cambiando contraseña usando Auth Admin API...");
     
-    // Intentar actualizar con la contraseña temporal
-    const { data: tempData, error: tempError } = await supabase
-      .from('usuarios')
-      .update({ 
-        pass: tempPassword,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId)
-      .select('id, nombres, tipouser')
-      .single();
+    const { data: authData, error: authError } = await supabase.auth.admin.updateUserById(
+      targetUser.idauth,
+      { password: nuevaClave }
+    );
 
-    if (!tempError && tempData) {
-      console.log("✅ Contraseña temporal asignada");
+    console.log("📊 Respuesta Auth Admin:", { authData, authError });
+
+    if (authError) {
+      console.error("❌ Error en Auth Admin API:", authError);
+      throw new Error(`Error al cambiar contraseña: ${authError.message}`);
+    }
+
+    if (authData && authData.user) {
+      console.log("✅ Contraseña actualizada exitosamente en auth.users");
       return {
         success: true,
-        data: tempData,
-        message: `Se asignó una contraseña temporal para ${tempData.nombres}`,
-        showPassword: true,
-        newPassword: tempPassword
+        data: targetUser,
+        message: `Contraseña actualizada exitosamente para ${targetUser.nombres}`,
+        showPassword: false
       };
     }
 
-    // Si todos los métodos fallan
-    const errorMsg = `No se pudo cambiar la contraseña. 
-    Método 1 (tabla usuarios): ${error?.message || 'Falló'}
-    Método 2 (auth admin): No disponible o falló
-    Método 3 (temporal): ${tempError?.message || 'Falló'}`;
-    
-    console.error("❌ Todos los métodos fallaron:", errorMsg);
-    throw new Error(errorMsg);
+    // Si llegamos aquí, algo salió mal
+    throw new Error("No se pudo cambiar la contraseña. Respuesta inesperada del servidor.");
 
   } catch (error) {
     console.error("💥 Error completo al cambiar contraseña:", error);
