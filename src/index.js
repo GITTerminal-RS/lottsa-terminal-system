@@ -48,6 +48,7 @@ export * from './components/organismos/tablas/TablaRuta';
 export * from './components/organismos/tablas/TablaDestinos';
 export * from './components/organismos/tablas/TablaUsuarios';
 export * from './components/organismos/tablas/TablaPublicidad';
+export { default as CambiarClaveUsuarioModal } from './components/modals/CambiarClaveUsuarioModal';
 export * from './components/organismos/report/StockActualTodos';
 export * from './components/organismos/report/StockActualPorDestino';
 // export * from './components/organismos/report/StockBajoMinimo';

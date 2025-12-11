@@ -1,7 +1,15 @@
 import styled from "styled-components";
 import { AccionTabla, v } from "../../index";
+import { FaKey } from "react-icons/fa";
 
-export function ContentAccionesTabla({ editar, eliminar, funcionEditar, funcionEliminar }) {
+export function ContentAccionesTabla({ 
+  editar, 
+  eliminar, 
+  funcionEditar, 
+  funcionEliminar, 
+  funcionCambiarClave, 
+  mostrarCambiarClave 
+}) {
   // Usar las props con los nombres nuevos o los viejos
   const handleEditar = editar || funcionEditar;
   const handleEliminar = eliminar || funcionEliminar;
@@ -14,6 +22,14 @@ export function ContentAccionesTabla({ editar, eliminar, funcionEditar, funcionE
         color="#7d7d7d"
         icono={<v.iconeditarTabla />}
       />
+      {mostrarCambiarClave && funcionCambiarClave && (
+        <AccionTabla
+          funcion={funcionCambiarClave}
+          fontSize="18px"
+          color="#3498db"
+          icono={<FaKey />}
+        />
+      )}
        {handleEliminar && (
          <AccionTabla
           funcion={handleEliminar}
