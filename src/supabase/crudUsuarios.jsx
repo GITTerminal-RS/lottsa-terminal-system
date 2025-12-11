@@ -153,29 +153,34 @@ export async function CambiarClaveUsuario(userId, nuevaClave) {
       throw new Error(`El usuario ${targetUser.nombres} no tiene registro de autenticación asociado`);
     }
 
-    // Cambiar contraseña usando Supabase Auth Admin API
-    console.log("🔄 Cambiando contraseña usando Auth Admin API...");
+    // Cambiar contraseña usando función RPC segura
+    console.log("🔄 Cambiando contraseña usando función RPC...");
     
-    const { data: authData, error: authError } = await supabase.auth.admin.updateUserById(
-      targetUser.idauth,
-      { password: nuevaClave }
-    );
+    const { data: rpcData, error: rpcError } = await supabase.rpc('cambiar_password_root', {
+      target_user_id: targetUser.idauth,
+      new_password: nuevaClave
+    });
 
-    console.log("📊 Respuesta Auth Admin:", { authData, authError });
+    console.log("📊 Respuesta RPC:", { rpcData, rpcError });
 
-    if (authError) {
-      console.error("❌ Error en Auth Admin API:", authError);
-      throw new Error(`Error al cambiar contraseña: ${authError.message}`);
+    if (rpcError) {
+      console.error("❌ Error en función RPC:", rpcError);
+      throw new Error(`Error al cambiar contraseña: ${rpcError.message}`);
     }
 
-    if (authData && authData.user) {
-      console.log("✅ Contraseña actualizada exitosamente en auth.users");
+    if (rpcData && rpcData.success) {
+      console.log("✅ Contraseña actualizada exitosamente");
       return {
         success: true,
         data: targetUser,
         message: `Contraseña actualizada exitosamente para ${targetUser.nombres}`,
         showPassword: false
       };
+    }
+
+    // Si la función RPC devuelve un error
+    if (rpcData && !rpcData.success) {
+      throw new Error(rpcData.error || "Error desconocido al cambiar contraseña");
     }
 
     // Si llegamos aquí, algo salió mal
