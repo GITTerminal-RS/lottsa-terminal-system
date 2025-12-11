@@ -1,9 +1,8 @@
 -- Función RPC para cambiar contraseñas desde usuario root
 -- Esta función se ejecuta en el servidor con permisos de servicio
 
--- Primero eliminar cualquier versión anterior de la función
-DROP FUNCTION IF EXISTS cambiar_password_root(UUID, TEXT);
-DROP FUNCTION IF EXISTS cambiar_password_root(TEXT, TEXT);
+-- Eliminar todas las versiones existentes de la función de forma segura
+DROP FUNCTION IF EXISTS public.cambiar_password_root;
 
 -- Crear la función con los tipos correctos
 CREATE OR REPLACE FUNCTION cambiar_password_root(
