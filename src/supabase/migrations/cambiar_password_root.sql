@@ -1,20 +1,29 @@
 -- Función RPC para cambiar contraseñas desde usuario root
 -- Esta función se ejecuta en el servidor con permisos de servicio
 
--- Eliminar todas las versiones existentes de la función especificando parámetros
+-- Eliminar todas las versiones posibles de la función de forma segura
 DO $$ 
-DECLARE
-    func_record RECORD;
 BEGIN
-    -- Buscar y eliminar todas las versiones de la función
-    FOR func_record IN 
-        SELECT proname, oidvectortypes(proargtypes) as args
-        FROM pg_proc p
-        JOIN pg_namespace n ON p.pronamespace = n.oid
-        WHERE proname = 'cambiar_password_root' AND n.nspname = 'public'
-    LOOP
-        EXECUTE format('DROP FUNCTION IF EXISTS public.%I(%s)', func_record.proname, func_record.args);
-    END LOOP;
+    -- Intentar eliminar versión con UUID, TEXT
+    BEGIN
+        DROP FUNCTION public.cambiar_password_root(UUID, TEXT);
+    EXCEPTION WHEN undefined_function THEN
+        NULL; -- Función no existe, continuar
+    END;
+    
+    -- Intentar eliminar versión con TEXT, TEXT
+    BEGIN
+        DROP FUNCTION public.cambiar_password_root(TEXT, TEXT);
+    EXCEPTION WHEN undefined_function THEN
+        NULL; -- Función no existe, continuar
+    END;
+    
+    -- Intentar eliminar cualquier otra versión sin parámetros específicos
+    BEGIN
+        EXECUTE 'DROP FUNCTION IF EXISTS public.cambiar_password_root';
+    EXCEPTION WHEN OTHERS THEN
+        NULL; -- Cualquier error, continuar
+    END;
 END $$;
 
 -- Crear la función con los tipos correctos
