@@ -40,11 +40,11 @@ function validarDuracionVideoMallaWeb(videoDuration) {
 
 function validarDuracionVideoMallaMovil(videoDuration) {
   const segundos = Math.round(videoDuration);
-  if (segundos < 15) {
-    throw new Error("El video móvil debe tener una duración mínima de 15 segundos");
+  if (segundos < 30) {
+    throw new Error("El video móvil debe tener una duración mínima de 30 segundos");
   }
-  if (segundos > 30) {
-    throw new Error(`El video móvil dura ${segundos}s. Debe estar entre 15 y 30 segundos.`);
+  if (segundos > 40) {
+    throw new Error(`El video móvil dura ${segundos}s. Debe estar entre 30 y 40 segundos.`);
   }
 }
 
@@ -238,7 +238,7 @@ export async function SubirVideoMovilMallaAlStorage(file, id_malla) {
       throw new Error("El archivo es demasiado grande. Máximo 100MB");
     }
 
-    // Validar duración del video móvil (entre 15 y 30 segundos)
+    // Validar duración del video móvil (entre 30 y 40 segundos)
     const videoDuration = await getVideoDuration(file);
     validarDuracionVideoMallaMovil(videoDuration);
 

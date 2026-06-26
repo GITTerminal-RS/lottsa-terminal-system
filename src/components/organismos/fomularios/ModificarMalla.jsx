@@ -92,8 +92,8 @@ export function ModificarMalla({ dataSelect }) {
 
   const validarDuracionVideoMovil = (videoDuration) => {
     const segundos = Math.round(videoDuration);
-    if (segundos < 15 || segundos > 30) {
-      return `El video móvil dura ${segundos}s. Debe estar entre 15 y 30 segundos.`;
+    if (segundos < 30 || segundos > 40) {
+      return `El video móvil dura ${segundos}s. Debe estar entre 30 y 40 segundos.`;
     }
     return null;
   };
@@ -230,7 +230,7 @@ export function ModificarMalla({ dataSelect }) {
         return;
       }
 
-      // Validar duración del video móvil (entre 15 y 30 segundos)
+      // Validar duración del video móvil (entre 30 y 40 segundos)
       try {
         const videoDuration = await getVideoDuration(file);
         const errorDuracion = validarDuracionVideoMovil(videoDuration);
@@ -486,7 +486,7 @@ export function ModificarMalla({ dataSelect }) {
             <p><strong>Requisitos del video móvil:</strong></p>
             <ul>
               <li>Formato: MP4 únicamente</li>
-              <li>Duración: Entre 15 y 30 segundos</li>
+              <li>Duración: Entre 30 y 40 segundos</li>
               <li>Tamaño máximo: 100MB</li>
               <li>Optimizado para dispositivos móviles</li>
             </ul>
