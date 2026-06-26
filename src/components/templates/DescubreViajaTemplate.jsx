@@ -441,8 +441,14 @@ export default function DescubreViajaTemplate({ onClose }) {
     queryFn: async () => {
       const { data, error } = await supabase.from('multimedia').select('*');
       if (error) throw error;
-      // Filtrar solo videos válidos
-      return (data || []).filter(m => m.video && m.video !== 'link');
+      const proyectoActual = import.meta.env.VITE_APP_SUPABASE_URL?.replace('https://', '').replace('.supabase.co', '') || '';
+      // Filtrar solo videos válidos del proyecto actual
+      return (data || []).filter((m) => {
+        if (!m.video || m.video === 'link') return false;
+        if (m.video.includes('rgnpwminvztocawdbvus')) return false;
+        if (proyectoActual && m.video.includes('.supabase.co') && !m.video.includes(proyectoActual)) return false;
+        return true;
+      });
     },
     staleTime: 10 * 60 * 1000, // 10 min - videos son relativamente estáticos
     cacheTime: 20 * 60 * 1000, // 20 min - cache extendido para videos
@@ -463,9 +469,18 @@ export default function DescubreViajaTemplate({ onClose }) {
     queryKey: ['publicidad-videos'],
     queryFn: async () => {
       const { data, error } = await supabase.from('publicidad').select('*');
-      if (error) throw error;
-      // Filtrar solo videos válidos
-      return (data || []).filter(p => p.video && p.video.trim() !== '');
+      if (error) {
+        // Tabla publicidad puede no existir en proyectos restaurados antiguos
+        if (error.code === 'PGRST205' || error.code === '42P01') return [];
+        throw error;
+      }
+      const proyectoActual = import.meta.env.VITE_APP_SUPABASE_URL?.replace('https://', '').replace('.supabase.co', '') || '';
+      return (data || []).filter((p) => {
+        if (!p.video || p.video.trim() === '') return false;
+        if (p.video.includes('rgnpwminvztocawdbvus')) return false;
+        if (proyectoActual && p.video.includes('.supabase.co') && !p.video.includes(proyectoActual)) return false;
+        return true;
+      });
     },
     staleTime: 10 * 60 * 1000, // 10 min - videos son relativamente estáticos
     cacheTime: 20 * 60 * 1000, // 20 min - cache extendido para videos

@@ -82,6 +82,22 @@ export function ModificarMalla({ dataSelect }) {
     });
   };
 
+  const validarDuracionVideoWeb = (videoDuration) => {
+    const segundos = Math.round(videoDuration);
+    if (segundos < 30 || segundos > 40) {
+      return `El video dura ${segundos}s. Debe estar entre 30 y 40 segundos.`;
+    }
+    return null;
+  };
+
+  const validarDuracionVideoMovil = (videoDuration) => {
+    const segundos = Math.round(videoDuration);
+    if (segundos < 15 || segundos > 30) {
+      return `El video móvil dura ${segundos}s. Debe estar entre 15 y 30 segundos.`;
+    }
+    return null;
+  };
+
   // Función para manejar la selección de video
   const handleVideoSelect = async (event) => {
     const file = event.target.files[0];
@@ -102,12 +118,9 @@ export function ModificarMalla({ dataSelect }) {
       // Validar duración del video (entre 30 y 40 segundos)
       try {
         const videoDuration = await getVideoDuration(file);
-        if (videoDuration < 30) {
-          toast.error("El video debe tener una duración mínima de 30 segundos");
-          return;
-        }
-        if (videoDuration > 40) {
-          toast.error("El video debe tener una duración máxima de 40 segundos");
+        const errorDuracion = validarDuracionVideoWeb(videoDuration);
+        if (errorDuracion) {
+          toast.error(errorDuracion);
           return;
         }
       } catch (error) {
@@ -220,12 +233,9 @@ export function ModificarMalla({ dataSelect }) {
       // Validar duración del video móvil (entre 15 y 30 segundos)
       try {
         const videoDuration = await getVideoDuration(file);
-        if (videoDuration < 15) {
-          toast.error("El video móvil debe tener una duración mínima de 15 segundos");
-          return;
-        }
-        if (videoDuration > 30) {
-          toast.error("El video móvil debe tener una duración máxima de 30 segundos");
+        const errorDuracion = validarDuracionVideoMovil(videoDuration);
+        if (errorDuracion) {
+          toast.error(errorDuracion);
           return;
         }
       } catch (error) {

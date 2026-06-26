@@ -27,6 +27,27 @@ export async function actualizarMalla(p) {
   return data;
 }
 
+// Validación de duración: el navegador a veces reporta 40.04s en archivos de ~33s
+function validarDuracionVideoMallaWeb(videoDuration) {
+  const segundos = Math.round(videoDuration);
+  if (segundos < 30) {
+    throw new Error("El video debe tener una duración mínima de 30 segundos");
+  }
+  if (segundos > 40) {
+    throw new Error(`El video dura ${segundos}s. Debe estar entre 30 y 40 segundos.`);
+  }
+}
+
+function validarDuracionVideoMallaMovil(videoDuration) {
+  const segundos = Math.round(videoDuration);
+  if (segundos < 15) {
+    throw new Error("El video móvil debe tener una duración mínima de 15 segundos");
+  }
+  if (segundos > 30) {
+    throw new Error(`El video móvil dura ${segundos}s. Debe estar entre 15 y 30 segundos.`);
+  }
+}
+
 // Función para subir video de malla al storage
 export async function SubirVideoMallaAlStorage(file, id_malla) {
   try {
@@ -55,12 +76,7 @@ export async function SubirVideoMallaAlStorage(file, id_malla) {
 
     // Validar duración del video (entre 30 y 40 segundos)
     const videoDuration = await getVideoDuration(file);
-    if (videoDuration < 30) {
-      throw new Error("El video debe tener una duración mínima de 30 segundos");
-    }
-    if (videoDuration > 40) {
-      throw new Error("El video debe tener una duración máxima de 40 segundos");
-    }
+    validarDuracionVideoMallaWeb(videoDuration);
 
     // Generar nombre único para el archivo
     const fileName = `malla/${id_malla}_${Date.now()}.mp4`;
@@ -224,12 +240,7 @@ export async function SubirVideoMovilMallaAlStorage(file, id_malla) {
 
     // Validar duración del video móvil (entre 15 y 30 segundos)
     const videoDuration = await getVideoDuration(file);
-    if (videoDuration < 15) {
-      throw new Error("El video móvil debe tener una duración mínima de 15 segundos");
-    }
-    if (videoDuration > 30) {
-      throw new Error("El video móvil debe tener una duración máxima de 30 segundos");
-    }
+    validarDuracionVideoMallaMovil(videoDuration);
 
     // Generar nombre único para el archivo (con sufijo _mobile)
     const fileName = `malla/${id_malla}_mobile_${Date.now()}.mp4`;
