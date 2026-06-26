@@ -1,18 +1,19 @@
 services:
   - type: web
-    name: lottsa-app
-    env: node
+    name: lottsa-terminal-system
+    runtime: node
     plan: free
+    branch: clean-main
+    autoDeployTrigger: commit
     buildCommand: npm install && npm run build
     startCommand: npm start
-    staticPublishPath: ./dist
     envVars:
       - key: NODE_VERSION
-        value: 18
+        value: "22"
       - key: VITE_APP_SUPABASE_URL
-        sync: false  # Configurar manualmente en Render
+        sync: false
       - key: VITE_APP_SUPABASE_ANON_KEY
-        sync: false  # Configurar manualmente en Render
+        sync: false
     headers:
       - path: /*
         name: X-Frame-Options
