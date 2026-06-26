@@ -239,7 +239,7 @@ export async function SubirVideoMovilMallaAlStorage(file, id_malla) {
     // Generar nombre único para el archivo (con sufijo _mobile)
     const fileName = `malla/${id_malla}_mobile_${Date.now()}.mp4`;
 
-    console.log("Subiendo archivo móvil:", fileName);
+    console.log("Subiendo archivo móvil:", fileName, `(${(file.size / (1024 * 1024)).toFixed(1)} MB)`);
 
     // Subir archivo al storage
     const { data, error } = await supabase.storage
@@ -251,6 +251,18 @@ export async function SubirVideoMovilMallaAlStorage(file, id_malla) {
 
     if (error) {
       console.error("Error al subir archivo móvil:", error);
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      if (
+        error.message?.includes('maximum allowed size') ||
+        error.statusCode === '413' ||
+        error.status === 413
+      ) {
+        throw new Error(
+          `El video pesa ${sizeMb} MB y supera el límite del bucket "multimedia" en Supabase. ` +
+            `La duración (${Math.round(videoDuration)} s) está bien; el problema es el tamaño del archivo. ` +
+            `Comprime el MP4 o en Supabase ve a Storage → multimedia → Edit bucket y sube el límite (máx. 50 MB en plan Free).`
+        );
+      }
       throw new Error(error.message || "Error al subir el video móvil");
     }
 
