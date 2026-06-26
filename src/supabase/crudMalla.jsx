@@ -232,12 +232,6 @@ export async function SubirVideoMovilMallaAlStorage(file, id_malla) {
       throw new Error("Solo se permiten archivos MP4");
     }
 
-    // Validar tamaño (máximo 100MB)
-    const maxSize = 100 * 1024 * 1024; // 100MB
-    if (file.size > maxSize) {
-      throw new Error("El archivo es demasiado grande. Máximo 100MB");
-    }
-
     // Validar duración del video móvil (entre 30 y 40 segundos)
     const videoDuration = await getVideoDuration(file);
     validarDuracionVideoMallaMovil(videoDuration);

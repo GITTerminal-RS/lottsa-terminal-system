@@ -223,13 +223,6 @@ export function ModificarMalla({ dataSelect }) {
         return;
       }
 
-      // Validar tamaño (máximo 100MB)
-      const maxSize = 100 * 1024 * 1024; // 100MB
-      if (file.size > maxSize) {
-        toast.error("El archivo es demasiado grande. Máximo 100MB");
-        return;
-      }
-
       // Validar duración del video móvil (entre 30 y 40 segundos)
       try {
         const videoDuration = await getVideoDuration(file);
@@ -487,7 +480,6 @@ export function ModificarMalla({ dataSelect }) {
             <ul>
               <li>Formato: MP4 únicamente</li>
               <li>Duración: Entre 30 y 40 segundos</li>
-              <li>Tamaño máximo: 100MB</li>
               <li>Optimizado para dispositivos móviles</li>
             </ul>
           </VideoInfo>
