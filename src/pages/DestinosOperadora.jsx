@@ -9,6 +9,7 @@ import { FiClock, FiArrowLeft, FiTarget } from "react-icons/fi";
 import { FaLightbulb, FaGlobe, FaBus, FaPlay } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabase/supabase.config';
+import serviciosImg from '../assets/servicios.jpg';
 
 export function DestinosOperadora() {
   const [isMuted, setIsMuted] = useState(true);
@@ -331,7 +332,7 @@ export function DestinosOperadora() {
               <PorQueText>Queremos brindar un servicio eficiente y de calidad a un mayor número de personas, tanto a nivel nacional como internacional.</PorQueText>
               <ServiciosSection>
                 <ServiciosImgBox>
-                  <ServiciosImg src="https://i.ibb.co/dJ14DcTF/9.png" alt="Servicios" />
+                  <ServiciosImg src={serviciosImg} alt="Servicios" />
                 </ServiciosImgBox>
                 <ServiciosListBox>
                   <ServiciosTitle>Nuestros Servicios</ServiciosTitle>
