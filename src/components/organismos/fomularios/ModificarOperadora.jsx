@@ -47,6 +47,7 @@ export function ModificarOperadora({ setState, dataSelect, accion }) {
 
   // 🚀 TanStack Query: Información institucional con debounce optimista
   const tiposInfo = [
+    { tipo: 'descripcion_bienvenida', label: 'Descripción de bienvenida', textarea: true, fullWidth: true },
     { tipo: 'mision', label: 'Misión', textarea: true },
     { tipo: 'vision', label: 'Visión', textarea: true },
     { tipo: 'servicios', label: 'Servicios', textarea: true },
@@ -59,12 +60,29 @@ export function ModificarOperadora({ setState, dataSelect, accion }) {
   // 🚀 Hook optimista para información institucional
   const infoDebounce = useOptimisticDebounce(
     async ({ tipo, descripcion, id_operadora }) => {
-      const { error } = await supabase
+      const { data: existing, error: selectError } = await supabase
         .from('informacion_institucional')
-        .update({ descripcion })
+        .select('id')
         .eq('id_operadora', id_operadora)
-        .eq('tipo', tipo);
-      if (error) throw error;
+        .eq('tipo', tipo)
+        .maybeSingle();
+
+      if (selectError) throw selectError;
+
+      if (existing) {
+        const { error } = await supabase
+          .from('informacion_institucional')
+          .update({ descripcion })
+          .eq('id_operadora', id_operadora)
+          .eq('tipo', tipo);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('informacion_institucional')
+          .insert({ id_operadora, tipo, descripcion });
+        if (error) throw error;
+      }
+
       return { tipo, descripcion };
     },
     ['informacion-institucional', dataSelect?.id],
@@ -463,8 +481,8 @@ export function ModificarOperadora({ setState, dataSelect, accion }) {
         <div style={{marginBottom: 32}}>
           <h2 style={{color:'#3a4b86', fontWeight:700, fontSize:'1.3rem', marginBottom:16}}>Información institucional</h2>
           <InfoGrid>
-            {tiposInfo.map(({ tipo, label, textarea, nota }) => (
-              <div key={tipo}>
+            {tiposInfo.map(({ tipo, label, textarea, nota, fullWidth }) => (
+              <div key={tipo} style={fullWidth ? { gridColumn: '1 / -1' } : undefined}>
                 <label style={{fontWeight:600, color:'#3a4b86', display:'block', marginBottom:4}}>{label}</label>
                 <InputText icono={<v.iconoinfo />}>
                 {textarea ? (
@@ -472,7 +490,15 @@ export function ModificarOperadora({ setState, dataSelect, accion }) {
                       className="form__field"
                     value={infoInstitucional[tipo] || ''}
                     onChange={e => handleInfoChange(tipo, e.target.value)}
-                    rows={tipo==='mision'||tipo==='vision'?6:tipo==='servicios'?4:3}
+                    rows={
+                      tipo === 'mision' || tipo === 'vision'
+                        ? 6
+                        : tipo === 'descripcion_bienvenida'
+                          ? 5
+                          : tipo === 'servicios'
+                            ? 4
+                            : 3
+                    }
                       style={{resize:'vertical'}}
                   />
                 ) : (
@@ -485,6 +511,11 @@ export function ModificarOperadora({ setState, dataSelect, accion }) {
                 )}
                   <label className="form__label">{label}</label>
                 </InputText>
+                {tipo === 'descripcion_bienvenida' && (
+                  <div style={{fontSize:'0.95rem', color:'#888', marginTop:2}}>
+                    Mensaje inicial que verán los usuarios en Conócenos, debajo de la portada y junto al logo.
+                  </div>
+                )}
                 {tipo === 'servicios' && (
                   <div style={{fontSize:'0.95rem', color:'#888', marginTop:2}}>
                     Los servicios se registran separados por una coma.

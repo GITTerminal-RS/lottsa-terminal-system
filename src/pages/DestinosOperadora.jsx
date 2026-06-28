@@ -282,6 +282,17 @@ export function DestinosOperadora() {
           </>
         ) : (
           <>
+            {infoInstitucional?.descripcion_bienvenida && (
+              <BienvenidaSection>
+                {operadora.logo && (
+                  <BienvenidaLogo
+                    src={getLogoUrl(operadora.logo)}
+                    alt={`Logo ${operadora.nombre}`}
+                  />
+                )}
+                <BienvenidaText>{infoInstitucional.descripcion_bienvenida}</BienvenidaText>
+              </BienvenidaSection>
+            )}
             <Title>Conoce más sobre {operadora.nombre}</Title>
             <MisionRow>
               <MisionImgBox>
@@ -368,6 +379,13 @@ function getPortadaUrl(portadaPath) {
   return data?.publicUrl || '';
 }
 
+function getLogoUrl(logoPath) {
+  if (!logoPath) return '';
+  if (logoPath.startsWith('http')) return logoPath;
+  const { data } = supabase.storage.from('operadora').getPublicUrl(logoPath);
+  return data?.publicUrl || '';
+}
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -420,6 +438,56 @@ const Description = styled.p`
   color: #444;
   margin-bottom: 40px;
   line-height: 1.6;
+`;
+
+const BienvenidaSection = styled.section`
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  margin: 0 0 40px 0;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #f8f9fc 0%, #eef2fa 100%);
+  border-left: 5px solid #3a4b86;
+  border-radius: 12px;
+  text-align: left;
+  box-shadow: 0 2px 12px rgba(58, 75, 134, 0.08);
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 20px 18px;
+    margin-bottom: 28px;
+  }
+`;
+
+const BienvenidaLogo = styled.img`
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: 900px) {
+    width: 96px;
+    height: 96px;
+  }
+`;
+
+const BienvenidaText = styled.p`
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: #333;
+  white-space: pre-line;
+
+  @media (max-width: 900px) {
+    font-size: 1.02rem;
+  }
 `;
 
 const LoadingMsg = styled.div`
