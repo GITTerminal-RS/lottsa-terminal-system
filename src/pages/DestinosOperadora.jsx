@@ -918,6 +918,10 @@ const PortadaContent = styled.div`
   width: 100%;
   padding: 32px 40px 18px 40px;
   text-align: left;
+
+  @media (max-width: 768px) {
+    padding: 18px 16px 12px 16px;
+  }
 `;
 
 const PortadaTitle = styled.h1`
@@ -927,6 +931,16 @@ const PortadaTitle = styled.h1`
   letter-spacing: 1px;
   text-shadow: 0 2px 8px rgba(0,0,0,0.18);
   margin: 0;
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 1.45rem;
+    letter-spacing: 0.4px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const PortadaLema = styled.h2`
@@ -945,6 +959,20 @@ const PortadaLema = styled.h2`
   width: 70%;
   max-width: 600px;
   white-space: pre-line;
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    font-size: 1.15rem;
+    width: 88%;
+    letter-spacing: 0.3px;
+    line-height: 1.35;
+    padding: 0 8px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.98rem;
+    width: 92%;
+  }
 `;
 
 const InfoSection = styled.div`
