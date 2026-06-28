@@ -13,6 +13,7 @@ import { toast } from "react-hot-toast";
 import Swal from "sweetalert2";
 import { BsEye } from "react-icons/bs";
 import { RiCloseLine } from "react-icons/ri";
+import { GestionAgencias } from "./GestionAgencias";
 
 export function ModificarOperadora({ setState, dataSelect, accion }) {
   // 🚀 TanStack Query: Hook optimizado para operadora
@@ -533,6 +534,9 @@ export function ModificarOperadora({ setState, dataSelect, accion }) {
             {infoDebounce.isSuccess && <span style={{color:'green'}}>✅ Guardado</span>}
             {infoDebounce.isPending && <span style={{color:'orange'}}>⏳ Escribiendo...</span>}
         </div>
+
+        <hr style={{margin: '32px 0'}} />
+        <GestionAgencias idOperadora={dataSelect?.id} />
       </div>
 
       {/* Modal para visualizar imágenes */}
