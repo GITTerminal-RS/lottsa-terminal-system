@@ -5,6 +5,8 @@ import { VideoModal } from "../components/modals/VideoModal";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { obtenerOperadorasPublico, obtenerDestinosOperadoraPublico, obtenerInfoInstitucional } from "../supabase/crudOperadora";
+import { obtenerAgenciasPublico } from "../supabase/crudAgencia";
+import { AgenciasPublicas } from "../components/organismos/AgenciasPublicas";
 import { FiClock, FiArrowLeft, FiTarget } from "react-icons/fi";
 import { FaLightbulb, FaGlobe, FaBus, FaPlay } from 'react-icons/fa';
 import toast from 'react-hot-toast';
@@ -17,6 +19,7 @@ export function DestinosOperadora() {
   const [loading, setLoading] = useState(true);
   const [destinos, setDestinos] = useState([]);
   const [infoInstitucional, setInfoInstitucional] = useState(null);
+  const [agencias, setAgencias] = useState([]);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
   const { id } = useParams();
@@ -41,8 +44,12 @@ export function DestinosOperadora() {
             const destinosData = await obtenerDestinosOperadoraPublico(operadoraEncontrada.id);
             setDestinos(destinosData || []);
           } else if (seccion === 'info') {
-            const infoData = await obtenerInfoInstitucional(operadoraEncontrada.id);
+            const [infoData, agenciasData] = await Promise.all([
+              obtenerInfoInstitucional(operadoraEncontrada.id),
+              obtenerAgenciasPublico(operadoraEncontrada.id),
+            ]);
             setInfoInstitucional(infoData);
+            setAgencias(agenciasData || []);
           }
         }
       } catch (error) {
@@ -294,6 +301,7 @@ export function DestinosOperadora() {
                 <BienvenidaText>{infoInstitucional.descripcion_bienvenida}</BienvenidaText>
               </BienvenidaSection>
             )}
+            <AgenciasPublicas agencias={agencias} />
             <Title>Conoce más sobre {operadora.nombre}</Title>
             <MisionRow>
               <MisionImgBox>

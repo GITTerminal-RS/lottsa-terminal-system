@@ -92,3 +92,18 @@ export async function eliminarAgencia({ id }) {
     return false;
   }
 }
+
+export async function obtenerAgenciasPublico(id_operadora) {
+  if (!id_operadora) return [];
+
+  const { data, error } = await supabase.rpc("obtener_agencias_publico", {
+    _id_operadora: id_operadora,
+  });
+
+  if (error) {
+    console.error("Error en obtenerAgenciasPublico:", error);
+    return [];
+  }
+
+  return data || [];
+}
