@@ -155,6 +155,20 @@ export const obtenerDestinosOperadoraPublico = async (id_operadora) => {
   return data;
 };
 
+export const obtenerOperadorasAdmin = async () => {
+  const { data, error } = await supabase
+    .from("operadora")
+    .select("id, nombre, direccion, telefono, logo, portada")
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    console.error("Error al obtener operadoras para admin:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
 export const obtenerInfoInstitucional = async (id_operadora) => {
   if (!id_operadora) return null;
 

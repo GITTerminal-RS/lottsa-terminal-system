@@ -136,19 +136,21 @@ export const useUsuariosStore = create((set, get) => ({
   mostrarpermisos: async (p) => {
     const response = await MostrarPermisos(p);
     set({ datapermisos: response });
+    const usuario = await MostrarUsuarios();
+    const isRoot = usuario?.tipouser === "root";
     let allDocs = [];
     DataModulosConfiguracion.map((element) => {
-      const statePermiso = response.some((objeto) =>
-        objeto.modulos.nombre.includes(element.title)
-      );
-      if(statePermiso) {
-        allDocs.push({...element,state:true})
-      }else{
-        allDocs.push({...element,state:false})
+      const statePermiso =
+        isRoot ||
+        response.some((objeto) => objeto.modulos.nombre.includes(element.title));
+      if (statePermiso) {
+        allDocs.push({ ...element, state: true });
+      } else {
+        allDocs.push({ ...element, state: false });
       }
     });
-    DataModulosConfiguracion.splice(0,DataModulosConfiguracion.length)
-    DataModulosConfiguracion.push(...allDocs)
+    DataModulosConfiguracion.splice(0, DataModulosConfiguracion.length);
+    DataModulosConfiguracion.push(...allDocs);
 
     return response;
   },

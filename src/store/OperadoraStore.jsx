@@ -4,6 +4,13 @@ import { ContarUsuariosXoperadora, MostrarOperadora, obtenerOperadoraPorAdmin, a
 export const useOperadoraStore = create((set, get) => ({
   contadorusuarios: 0,
   dataoperadora: null,
+  operadoraContexto: null,
+  setOperadoraContexto: (operadora) => set({ operadoraContexto: operadora }),
+  clearOperadoraContexto: () => set({ operadoraContexto: null }),
+  getOperadoraActiva: () => {
+    const { dataoperadora, operadoraContexto } = get();
+    return dataoperadora?.id ? dataoperadora : operadoraContexto;
+  },
   mostrarOperadora: async (p) => {
     try {
     console.log("OperadoraStore - Iniciando mostrarOperadora con:", p);

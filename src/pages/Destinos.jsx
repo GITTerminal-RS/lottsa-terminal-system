@@ -9,44 +9,78 @@ import {
   useUsuariosStore,
 } from "../index";
 import { useEffect, useState } from "react";
+import { MostrarUsuarios } from "../supabase/crudUsuarios";
+import { obtenerOperadorasAdmin } from "../supabase/crudOperadora";
 
 export function Destinos() {
   const { datapermisos } = useUsuariosStore();
-  const statePermiso = datapermisos.some((objeto) => objeto.modulos.nombre.includes("Destinos"));
- 
   const { mostrarRuta } = useRutaStore();
   const { mostrarhorarios } = useHorariosStore();
-  const { mostrardestinos, datadestinos, buscardestinos, buscador } = useDestinosStore();
-  const { dataoperadora } = useOperadoraStore();
+  const { mostrardestinos } = useDestinosStore();
+  const { dataoperadora, operadoraContexto } = useOperadoraStore();
+  const [isRoot, setIsRoot] = useState(false);
+  const [operadoras, setOperadoras] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
-  // Cargar datos iniciales
+  const operadoraActivaId = isRoot ? operadoraContexto?.id : dataoperadora?.id;
+  const statePermiso =
+    isRoot ||
+    datapermisos.some((objeto) => objeto.modulos.nombre.includes("Destinos"));
+
   useEffect(() => {
-    const cargarDatos = async () => {
+    async function initRoot() {
+      const usuario = await MostrarUsuarios();
+      const root = usuario?.tipouser === "root";
+      setIsRoot(root);
+      if (root) {
+        const lista = await obtenerOperadorasAdmin();
+        setOperadoras(lista);
+      }
+      setCheckingAccess(false);
+    }
+
+    initRoot();
+  }, []);
+
+  useEffect(() => {
+    async function cargarDatos() {
       try {
         setIsLoading(true);
-        if (dataoperadora?.id) {
-          await mostrardestinos({ id_operadora: dataoperadora.id });
-          if (mostrarRuta) await mostrarRuta({ id_operadora: dataoperadora.id });
-          if (mostrarhorarios) await mostrarhorarios({ id_operadora: dataoperadora.id });
+        if (!operadoraActivaId) {
+          return;
         }
+
+        await mostrardestinos({ id_operadora: operadoraActivaId });
+        await mostrarRuta({ id_operadora: operadoraActivaId });
+        await mostrarhorarios({ id_operadora: operadoraActivaId });
       } catch (error) {
         console.error("Error al cargar datos:", error);
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
     cargarDatos();
-  }, [dataoperadora?.id]);
+  }, [operadoraActivaId, mostrardestinos, mostrarRuta, mostrarhorarios]);
 
-  if (statePermiso === false) {
-    return <BloqueoPagina />;
-  }
-
-  if (isLoading) {
+  if (checkingAccess) {
     return <SpinnerLoader />;
   }
 
-  return <DestinosTemplate data={datadestinos || []} />;
+  if (!statePermiso) {
+    return <BloqueoPagina />;
+  }
+
+  if (isLoading && (!isRoot || operadoraActivaId)) {
+    return <SpinnerLoader />;
+  }
+
+  return (
+    <DestinosTemplate
+      isRoot={isRoot}
+      operadoras={operadoras}
+      operadoraSeleccionada={operadoraContexto}
+    />
+  );
 }

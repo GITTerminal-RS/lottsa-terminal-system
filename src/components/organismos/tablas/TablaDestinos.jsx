@@ -14,7 +14,6 @@ import {
   Paginacion,
   useDestinosStore,
   v,
-  useOperadoraStore,
   MostrarHorariosXDestino,
   Buscador
 } from "../../../index";
@@ -29,7 +28,6 @@ export function TablaDestinos({
 }) {
   const [pagina, setPagina] = useState(1);
   const { eliminardestinos, actualizarTabla, datadestinos, buscador, setBuscador } = useDestinosStore();
-  const { dataoperadora } = useOperadoraStore();
 
   console.log("TablaDestinos - datadestinos:", datadestinos);
   console.log("TablaDestinos - buscador (from store):", buscador);

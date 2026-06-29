@@ -3,12 +3,12 @@ import styled from "styled-components";
 import { v } from "../../../styles/variables";
 import { InputText, InputTextArea, Btnsave, useRutaStore, ConvertirCapitalize } from "../../../index";
 import { useForm } from "react-hook-form";
-import { useOperadoraStore } from "../../../store/OperadoraStore";
+import { useOperadoraActiva } from "../../../hooks/useOperadoraActiva";
 import Swal from "sweetalert2";
 
 export function RegistrarRuta({ onClose, dataSelect, accion }) {
   const { insertarRuta, editarRuta } = useRutaStore();
-  const { dataoperadora } = useOperadoraStore();
+  const operadoraActiva = useOperadoraActiva();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -41,7 +41,7 @@ export function RegistrarRuta({ onClose, dataSelect, accion }) {
         throw new Error("La descripción no puede estar vacía");
       }
 
-      if (!dataoperadora?.id) {
+      if (!operadoraActiva?.id) {
         throw new Error("No hay operadora seleccionada");
       }
 
@@ -55,7 +55,7 @@ export function RegistrarRuta({ onClose, dataSelect, accion }) {
           descripcion: ConvertirCapitalize(data.descripcion.trim()),
           precio: parseFloat(data.precio),
           precioespecial: parseFloat(data.precioespecial),
-          id_operadora: parseInt(dataoperadora.id)
+          id_operadora: parseInt(operadoraActiva.id)
         };
 
         // Verificar que los datos no sean iguales a los actuales
@@ -100,7 +100,7 @@ export function RegistrarRuta({ onClose, dataSelect, accion }) {
           _descripcion: ConvertirCapitalize(data.descripcion.trim()),
           _precio: parseFloat(data.precio),
           _precioespecial: parseFloat(data.precioespecial),
-          _idoperadora: parseInt(dataoperadora.id)
+          _idoperadora: parseInt(operadoraActiva.id)
       };
 
         const resultado = await insertarRuta(nuevoRegistro);

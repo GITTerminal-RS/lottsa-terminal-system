@@ -72,6 +72,7 @@ export * from './hooks/ProtectedRoute';
 export * from './hooks/ValidarBloqueoPagina';
 export * from './hooks/useCarteleraQuery';
 export * from './hooks/useCarteleraSearch';
+export * from './hooks/useOperadoraActiva';
 export * from './hooks/useOperadoraQuery';
 export * from './hooks/useOptimisticDebounce';
 export * from './hooks/useFileUpload';

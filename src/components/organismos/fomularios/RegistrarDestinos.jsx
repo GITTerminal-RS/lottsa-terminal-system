@@ -19,7 +19,7 @@ import {
 import { RegistrarRuta } from "./RegistrarRuta";
 import { RegistrarHorarios } from "./RegistrarHorarios";
 import { useForm } from "react-hook-form";
-import { useOperadoraStore } from "../../../store/OperadoraStore";
+import { useOperadoraActiva } from "../../../hooks/useOperadoraActiva";
 import Swal from "sweetalert2";
 import ecuadorData from "../../../utils/Ecuador.json";
 import { FaCloudUploadAlt, FaVideo, FaTimes } from "react-icons/fa";
@@ -518,7 +518,7 @@ const getColorByTime = (time) => {
 
 export function RegistrarDestinos({ onClose, dataSelect, accion }) {
   const { insertardestinos, editardestinos } = useDestinosStore();
-  const { dataoperadora } = useOperadoraStore();
+  const operadoraActiva = useOperadoraActiva();
   const { rutaItemSelect, dataruta, selectRuta, mostrarRuta } = useRutaStore();
   const { horariosItemSelect, datahorarios, selecthorarios, mostrarhorarios, horarios, sethorarios, eliminahorarios, edithorarios } = useHorariosStore();
   const [stateRuta, setStateRuta] = useState(false);
@@ -647,10 +647,10 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
 
   // Cargar rutas al montar el componente
   useEffect(() => {
-    if (dataoperadora?.id) {
-      mostrarRuta({ id_operadora: dataoperadora.id });
+    if (operadoraActiva?.id) {
+      mostrarRuta({ id_operadora: operadoraActiva.id });
     }
-  }, [dataoperadora?.id, mostrarRuta]);
+  }, [operadoraActiva?.id, mostrarRuta]);
 
   const nuevoRegistroRuta = useCallback(() => {
     SetopenRegistroRuta(true);
@@ -762,7 +762,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
         throw new Error("No hay horarios para registrar");
       }
 
-      if (!dataoperadora?.id) {
+      if (!operadoraActiva?.id) {
         throw new Error("No hay operadora seleccionada");
       }
 
@@ -782,7 +782,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
       const promesas = horariosSeleccionados.map(horario => 
         supabase.rpc('insertarhorarios', {
           _descripcion: horario.descripcion,
-          _idoperadora: dataoperadora.id,
+          _idoperadora: operadoraActiva.id,
           _iddestino: idDestino,
           _color: horario.color
         })
@@ -886,7 +886,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
       }
 
       // Subir video al storage
-      const videoUrl = await SubirVideoAlStorage(selectedVideo, idDestino, dataoperadora.id);
+      const videoUrl = await SubirVideoAlStorage(selectedVideo, idDestino, operadoraActiva.id);
       
       // Actualizar multimedia en la base de datos (incluye eliminación automática del video anterior)
       await ActualizarMultimedia(idDestino, videoUrl);
@@ -962,7 +962,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
         throw new Error("Debe registrar al menos un horario");
       }
 
-      if (!dataoperadora?.id) {
+      if (!operadoraActiva?.id) {
         throw new Error("No hay operadora seleccionada");
       }
 
@@ -973,7 +973,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
       const nuevoRegistro = {
         _descripcion: ConvertirCapitalize(data.descripcion.trim()),
         _idruta: parseInt(rutaItemSelect.id),
-        _id_operadora: parseInt(dataoperadora.id),
+        _id_operadora: parseInt(operadoraActiva.id),
         _provinciadestino: ConvertirCapitalize(data.provinciadestino.trim()),
         _ciudaddestino: ConvertirCapitalize(data.ciudaddestino.trim()),
         _direcciondestino: ConvertirCapitalize(data.direcciondestino.trim()),
@@ -1047,7 +1047,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
         throw new Error("Debe registrar al menos un horario");
       }
 
-      if (!dataoperadora?.id) {
+      if (!operadoraActiva?.id) {
         throw new Error("No hay operadora seleccionada");
       }
 
@@ -1059,7 +1059,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
           id: parseInt(dataSelect.id),
           descripcion: ConvertirCapitalize(data.descripcion.trim()),
           idruta: parseInt(rutaItemSelect.id),
-          id_operadora: parseInt(dataoperadora.id),
+          id_operadora: parseInt(operadoraActiva.id),
           provinciadestino: ConvertirCapitalize(data.provinciadestino.trim()),
           ciudaddestino: ConvertirCapitalize(data.ciudaddestino.trim()),
           direcciondestino: ConvertirCapitalize(data.direcciondestino.trim()),
