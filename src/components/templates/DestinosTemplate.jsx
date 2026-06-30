@@ -53,6 +53,7 @@ export function DestinosTemplate({ isRoot = false, operadoras = [], operadoraSel
         <RegistrarDestinos
           dataSelect={dataSelect}
           accion={accion}
+          isRoot={isRoot}
           onClose={handleCloseRegistro}
         />
       )}
@@ -69,12 +70,14 @@ export function DestinosTemplate({ isRoot = false, operadoras = [], operadoraSel
               <RootBadge>Gestión global · Usuario root</RootBadge>
             )}
           </TitleBlock>
-          <Btnfiltro
-            funcion={nuevoRegistro}
-            bgcolor="#f6f3f3"
-            textcolor="#353535"
-            icono={<v.agregar />}
-          />
+          {!isRoot && (
+            <Btnfiltro
+              funcion={nuevoRegistro}
+              bgcolor="#f6f3f3"
+              textcolor="#353535"
+              icono={<v.agregar />}
+            />
+          )}
         </ContentFiltro>
 
         {isRoot && (
@@ -96,8 +99,8 @@ export function DestinosTemplate({ isRoot = false, operadoras = [], operadoraSel
             </SelectorRow>
             <SelectorHint>
               {operadoraSeleccionada
-                ? `Gestionando destinos de: ${operadoraSeleccionada.nombre}`
-                : "Elige una cooperativa para listar y modificar sus destinos."}
+                ? `Editando destinos de: ${operadoraSeleccionada.nombre}`
+                : "Elige una cooperativa para listar, editar o eliminar sus destinos."}
             </SelectorHint>
           </SelectorCard>
         )}
@@ -109,7 +112,7 @@ export function DestinosTemplate({ isRoot = false, operadoras = [], operadoraSel
             <EmptyIcon>🏢</EmptyIcon>
             <EmptyTitle>Selecciona una cooperativa</EmptyTitle>
             <EmptyText>
-              Como usuario root puedes administrar los destinos de cualquier operadora
+              Como usuario root puedes editar y eliminar destinos de cualquier operadora
               desde este módulo.
             </EmptyText>
           </EmptyState>

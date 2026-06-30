@@ -516,7 +516,7 @@ const getColorByTime = (time) => {
   return hours < 12 ? '#4CAF50' : '#FFC107'; // Verde para AM, Amarillo para PM
 };
 
-export function RegistrarDestinos({ onClose, dataSelect, accion }) {
+export function RegistrarDestinos({ onClose, dataSelect, accion, isRoot = false }) {
   const { insertardestinos, editardestinos } = useDestinosStore();
   const operadoraActiva = useOperadoraActiva();
   const { rutaItemSelect, dataruta, selectRuta, mostrarRuta } = useRutaStore();
@@ -1080,17 +1080,19 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
           throw new Error(`Error al actualizar horarios: ${error.message}`);
         }
 
-        // 3. Manejar multimedia
-        try {
-          if (selectedVideo) {
-            toast.loading("Video subiendo...");
-            await handleVideoSubmit(dataSelect.id, false);
-          } else {
-            await ActualizarMultimediaSinVideo(dataSelect.id);
+        // 3. Manejar multimedia (root no gestiona videos)
+        if (!isRoot) {
+          try {
+            if (selectedVideo) {
+              toast.loading("Video subiendo...");
+              await handleVideoSubmit(dataSelect.id, false);
+            } else {
+              await ActualizarMultimediaSinVideo(dataSelect.id);
+            }
+          } catch (error) {
+            toast.dismiss();
+            throw new Error(`Error al actualizar multimedia: ${error.message}`);
           }
-        } catch (error) {
-          toast.dismiss();
-          throw new Error(`Error al actualizar multimedia: ${error.message}`);
         }
         
         // Solo mostrar éxito cuando todo se complete correctamente
@@ -1114,6 +1116,11 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
 
   // Función que maneja tanto inserción como edición
   const onSubmit = (data) => {
+    if (isRoot && accion !== "Editar") {
+      toast.error("El usuario root solo puede editar destinos existentes");
+      return;
+    }
+
     if (accion === "Editar") {
       editar(data);
     } else {
@@ -1372,7 +1379,7 @@ export function RegistrarDestinos({ onClose, dataSelect, accion }) {
                 )}
               </div>
 
-              {accion === 'Editar' && (
+              {accion === "Editar" && !isRoot && (
                 <ContentCard>
                   <Title>Video del destino</Title>
                   <VideoUploadContainer
